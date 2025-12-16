@@ -1,0 +1,1354 @@
+<!DOCTYPE html>
+<html lang="de">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, viewport-fit=cover">
+    <meta name="description" content="SchadensChat - Die schnellste Art, Fahrzeugschäden zu melden und Reparaturangebote zu erhalten. Fotos hochladen, Angebote vergleichen, Werkstatt beauftragen.">
+    <meta name="keywords" content="Fahrzeugschaden, Autoreparatur, Werkstatt, Kostenvoranschlag, Lackierung, Unfallschaden">
+    <meta name="author" content="SchadensChat">
+
+    <!-- Open Graph -->
+    <meta property="og:title" content="SchadensChat - Schaden melden, Angebote erhalten">
+    <meta property="og:description" content="Die schnellste Art, Fahrzeugschäden zu melden und Reparaturangebote von Werkstätten zu erhalten.">
+    <meta property="og:type" content="website">
+    <meta property="og:url" content="https://schadens-chat.de">
+
+    <!-- Favicon -->
+    <link rel="icon" type="image/svg+xml" href="data:image/svg+xml,<svg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 100 100'><text y='.9em' font-size='90'>🚗</text></svg>">
+
+    <title>SchadensChat - Schaden melden, Angebote erhalten</title>
+
+    <style>
+        :root {
+            --primary: #6366f1;
+            --primary-dark: #4f46e5;
+            --primary-light: #818cf8;
+            --secondary: #0ea5e9;
+            --success: #10b981;
+            --warning: #f59e0b;
+            --danger: #ef4444;
+            --dark: #1e293b;
+            --gray-50: #f8fafc;
+            --gray-100: #f1f5f9;
+            --gray-200: #e2e8f0;
+            --gray-300: #cbd5e1;
+            --gray-400: #94a3b8;
+            --gray-500: #64748b;
+            --gray-600: #475569;
+            --gray-700: #334155;
+            --gray-800: #1e293b;
+            --gray-900: #0f172a;
+            --white: #ffffff;
+            --gradient-primary: linear-gradient(135deg, #6366f1 0%, #8b5cf6 50%, #a855f7 100%);
+            --gradient-hero: linear-gradient(135deg, #1e293b 0%, #334155 100%);
+            --shadow-sm: 0 1px 2px rgba(0,0,0,0.05);
+            --shadow-md: 0 4px 6px -1px rgba(0,0,0,0.1), 0 2px 4px -1px rgba(0,0,0,0.06);
+            --shadow-lg: 0 10px 15px -3px rgba(0,0,0,0.1), 0 4px 6px -2px rgba(0,0,0,0.05);
+            --shadow-xl: 0 20px 25px -5px rgba(0,0,0,0.1), 0 10px 10px -5px rgba(0,0,0,0.04);
+            --radius-sm: 8px;
+            --radius-md: 12px;
+            --radius-lg: 16px;
+            --radius-xl: 24px;
+            --radius-full: 9999px;
+        }
+
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+
+        html {
+            scroll-behavior: smooth;
+        }
+
+        body {
+            font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, Oxygen, Ubuntu, sans-serif;
+            color: var(--gray-800);
+            line-height: 1.6;
+            background: var(--white);
+            overflow-x: hidden;
+        }
+
+        /* ========== NAVBAR ========== */
+        .navbar {
+            position: fixed;
+            top: 0;
+            left: 0;
+            right: 0;
+            z-index: 1000;
+            padding: 16px 24px;
+            transition: all 0.3s ease;
+        }
+
+        .navbar.scrolled {
+            background: rgba(255,255,255,0.95);
+            backdrop-filter: blur(20px);
+            box-shadow: var(--shadow-md);
+        }
+
+        .navbar-content {
+            max-width: 1200px;
+            margin: 0 auto;
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+        }
+
+        .logo {
+            display: flex;
+            align-items: center;
+            gap: 12px;
+            font-size: 24px;
+            font-weight: 700;
+            color: var(--white);
+            text-decoration: none;
+            transition: color 0.3s;
+        }
+
+        .navbar.scrolled .logo {
+            color: var(--gray-800);
+        }
+
+        .logo-icon {
+            font-size: 32px;
+        }
+
+        .nav-links {
+            display: flex;
+            gap: 32px;
+            align-items: center;
+        }
+
+        .nav-link {
+            color: rgba(255,255,255,0.9);
+            text-decoration: none;
+            font-weight: 500;
+            transition: color 0.3s;
+        }
+
+        .navbar.scrolled .nav-link {
+            color: var(--gray-600);
+        }
+
+        .nav-link:hover {
+            color: var(--primary-light);
+        }
+
+        .navbar.scrolled .nav-link:hover {
+            color: var(--primary);
+        }
+
+        .btn {
+            display: inline-flex;
+            align-items: center;
+            justify-content: center;
+            gap: 8px;
+            padding: 12px 24px;
+            border-radius: var(--radius-full);
+            font-weight: 600;
+            font-size: 16px;
+            text-decoration: none;
+            cursor: pointer;
+            border: none;
+            transition: all 0.3s ease;
+        }
+
+        .btn-primary {
+            background: var(--gradient-primary);
+            color: var(--white);
+            box-shadow: 0 4px 14px rgba(99, 102, 241, 0.4);
+        }
+
+        .btn-primary:hover {
+            transform: translateY(-2px);
+            box-shadow: 0 6px 20px rgba(99, 102, 241, 0.5);
+        }
+
+        .btn-secondary {
+            background: var(--white);
+            color: var(--primary);
+            border: 2px solid var(--primary);
+        }
+
+        .btn-secondary:hover {
+            background: var(--primary);
+            color: var(--white);
+        }
+
+        .btn-white {
+            background: var(--white);
+            color: var(--gray-800);
+        }
+
+        .btn-white:hover {
+            background: var(--gray-100);
+        }
+
+        .btn-lg {
+            padding: 16px 32px;
+            font-size: 18px;
+        }
+
+        /* ========== HERO ========== */
+        .hero {
+            background: var(--gradient-hero);
+            min-height: 100vh;
+            display: flex;
+            align-items: center;
+            padding: 120px 24px 80px;
+            position: relative;
+            overflow: hidden;
+        }
+
+        .hero::before {
+            content: '';
+            position: absolute;
+            top: 0;
+            left: 0;
+            right: 0;
+            bottom: 0;
+            background: url("data:image/svg+xml,%3Csvg width='60' height='60' viewBox='0 0 60 60' xmlns='http://www.w3.org/2000/svg'%3E%3Cg fill='none' fill-rule='evenodd'%3E%3Cg fill='%23ffffff' fill-opacity='0.03'%3E%3Cpath d='M36 34v-4h-2v4h-4v2h4v4h2v-4h4v-2h-4zm0-30V0h-2v4h-4v2h4v4h2V6h4V4h-4zM6 34v-4H4v4H0v2h4v4h2v-4h4v-2H6zM6 4V0H4v4H0v2h4v4h2V6h4V4H6z'/%3E%3C/g%3E%3C/g%3E%3C/svg%3E");
+            opacity: 0.5;
+        }
+
+        .hero-content {
+            max-width: 1200px;
+            margin: 0 auto;
+            display: grid;
+            grid-template-columns: 1fr 1fr;
+            gap: 60px;
+            align-items: center;
+            position: relative;
+            z-index: 1;
+        }
+
+        .hero-text h1 {
+            font-size: 56px;
+            font-weight: 800;
+            color: var(--white);
+            line-height: 1.1;
+            margin-bottom: 24px;
+        }
+
+        .hero-text h1 span {
+            background: var(--gradient-primary);
+            -webkit-background-clip: text;
+            -webkit-text-fill-color: transparent;
+            background-clip: text;
+        }
+
+        .hero-text p {
+            font-size: 20px;
+            color: var(--gray-300);
+            margin-bottom: 40px;
+            max-width: 500px;
+        }
+
+        .hero-buttons {
+            display: flex;
+            gap: 16px;
+            flex-wrap: wrap;
+        }
+
+        .hero-stats {
+            display: flex;
+            gap: 40px;
+            margin-top: 60px;
+        }
+
+        .hero-stat {
+            text-align: center;
+        }
+
+        .hero-stat-value {
+            font-size: 36px;
+            font-weight: 800;
+            color: var(--white);
+        }
+
+        .hero-stat-label {
+            font-size: 14px;
+            color: var(--gray-400);
+            text-transform: uppercase;
+            letter-spacing: 1px;
+        }
+
+        .hero-visual {
+            position: relative;
+        }
+
+        .phone-mockup {
+            background: var(--gray-800);
+            border-radius: 40px;
+            padding: 12px;
+            box-shadow: var(--shadow-xl), 0 0 100px rgba(99, 102, 241, 0.3);
+            transform: perspective(1000px) rotateY(-5deg) rotateX(5deg);
+            transition: transform 0.5s ease;
+        }
+
+        .phone-mockup:hover {
+            transform: perspective(1000px) rotateY(0deg) rotateX(0deg);
+        }
+
+        .phone-screen {
+            background: var(--white);
+            border-radius: 32px;
+            overflow: hidden;
+            aspect-ratio: 9/19;
+            max-width: 320px;
+        }
+
+        .phone-screen img {
+            width: 100%;
+            height: 100%;
+            object-fit: cover;
+        }
+
+        .phone-notch {
+            position: absolute;
+            top: 20px;
+            left: 50%;
+            transform: translateX(-50%);
+            width: 120px;
+            height: 28px;
+            background: var(--gray-900);
+            border-radius: 20px;
+        }
+
+        /* ========== FEATURES ========== */
+        .features {
+            padding: 120px 24px;
+            background: var(--gray-50);
+        }
+
+        .section-header {
+            text-align: center;
+            max-width: 600px;
+            margin: 0 auto 80px;
+        }
+
+        .section-badge {
+            display: inline-block;
+            background: var(--primary);
+            color: var(--white);
+            padding: 6px 16px;
+            border-radius: var(--radius-full);
+            font-size: 14px;
+            font-weight: 600;
+            margin-bottom: 16px;
+        }
+
+        .section-title {
+            font-size: 42px;
+            font-weight: 800;
+            color: var(--gray-900);
+            margin-bottom: 16px;
+        }
+
+        .section-subtitle {
+            font-size: 18px;
+            color: var(--gray-500);
+        }
+
+        .features-grid {
+            max-width: 1200px;
+            margin: 0 auto;
+            display: grid;
+            grid-template-columns: repeat(3, 1fr);
+            gap: 32px;
+        }
+
+        .feature-card {
+            background: var(--white);
+            border-radius: var(--radius-xl);
+            padding: 40px;
+            box-shadow: var(--shadow-md);
+            transition: all 0.3s ease;
+            border: 1px solid var(--gray-100);
+        }
+
+        .feature-card:hover {
+            transform: translateY(-8px);
+            box-shadow: var(--shadow-xl);
+        }
+
+        .feature-icon {
+            width: 64px;
+            height: 64px;
+            background: var(--gradient-primary);
+            border-radius: var(--radius-lg);
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            font-size: 28px;
+            margin-bottom: 24px;
+        }
+
+        .feature-title {
+            font-size: 22px;
+            font-weight: 700;
+            color: var(--gray-900);
+            margin-bottom: 12px;
+        }
+
+        .feature-text {
+            color: var(--gray-500);
+            line-height: 1.7;
+        }
+
+        /* ========== HOW IT WORKS ========== */
+        .how-it-works {
+            padding: 120px 24px;
+            background: var(--white);
+        }
+
+        .steps-container {
+            max-width: 1000px;
+            margin: 0 auto;
+            display: flex;
+            flex-direction: column;
+            gap: 80px;
+        }
+
+        .step {
+            display: grid;
+            grid-template-columns: 1fr 1fr;
+            gap: 60px;
+            align-items: center;
+        }
+
+        .step:nth-child(even) {
+            direction: rtl;
+        }
+
+        .step:nth-child(even) > * {
+            direction: ltr;
+        }
+
+        .step-content {
+            padding: 20px;
+        }
+
+        .step-number {
+            width: 48px;
+            height: 48px;
+            background: var(--gradient-primary);
+            border-radius: var(--radius-full);
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            font-size: 20px;
+            font-weight: 700;
+            color: var(--white);
+            margin-bottom: 20px;
+        }
+
+        .step-title {
+            font-size: 28px;
+            font-weight: 700;
+            color: var(--gray-900);
+            margin-bottom: 16px;
+        }
+
+        .step-text {
+            font-size: 18px;
+            color: var(--gray-500);
+            line-height: 1.7;
+        }
+
+        .step-visual {
+            background: var(--gray-100);
+            border-radius: var(--radius-xl);
+            padding: 40px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            min-height: 300px;
+        }
+
+        .step-emoji {
+            font-size: 120px;
+        }
+
+        /* ========== PRICING ========== */
+        .pricing {
+            padding: 120px 24px;
+            background: var(--gradient-hero);
+        }
+
+        .pricing .section-header {
+            color: var(--white);
+        }
+
+        .pricing .section-title {
+            color: var(--white);
+        }
+
+        .pricing .section-subtitle {
+            color: var(--gray-300);
+        }
+
+        .pricing-grid {
+            max-width: 1000px;
+            margin: 0 auto;
+            display: grid;
+            grid-template-columns: repeat(3, 1fr);
+            gap: 24px;
+        }
+
+        .pricing-card {
+            background: var(--white);
+            border-radius: var(--radius-xl);
+            padding: 40px;
+            text-align: center;
+            position: relative;
+            transition: all 0.3s ease;
+        }
+
+        .pricing-card:hover {
+            transform: translateY(-8px);
+        }
+
+        .pricing-card.popular {
+            background: var(--gradient-primary);
+            color: var(--white);
+            transform: scale(1.05);
+            box-shadow: 0 20px 40px rgba(99, 102, 241, 0.4);
+        }
+
+        .pricing-card.popular:hover {
+            transform: scale(1.05) translateY(-8px);
+        }
+
+        .popular-badge {
+            position: absolute;
+            top: -12px;
+            left: 50%;
+            transform: translateX(-50%);
+            background: var(--warning);
+            color: var(--gray-900);
+            padding: 6px 20px;
+            border-radius: var(--radius-full);
+            font-size: 12px;
+            font-weight: 700;
+            text-transform: uppercase;
+        }
+
+        .pricing-name {
+            font-size: 20px;
+            font-weight: 600;
+            margin-bottom: 8px;
+        }
+
+        .pricing-card:not(.popular) .pricing-name {
+            color: var(--gray-600);
+        }
+
+        .pricing-price {
+            font-size: 48px;
+            font-weight: 800;
+            margin-bottom: 8px;
+        }
+
+        .pricing-card:not(.popular) .pricing-price {
+            color: var(--gray-900);
+        }
+
+        .pricing-period {
+            font-size: 14px;
+            opacity: 0.7;
+            margin-bottom: 32px;
+        }
+
+        .pricing-features {
+            list-style: none;
+            margin-bottom: 32px;
+            text-align: left;
+        }
+
+        .pricing-features li {
+            padding: 12px 0;
+            border-bottom: 1px solid rgba(0,0,0,0.05);
+            display: flex;
+            align-items: center;
+            gap: 12px;
+        }
+
+        .pricing-card.popular .pricing-features li {
+            border-color: rgba(255,255,255,0.1);
+        }
+
+        .pricing-features li::before {
+            content: '\2713';
+            width: 20px;
+            height: 20px;
+            background: var(--success);
+            color: var(--white);
+            border-radius: 50%;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            font-size: 12px;
+            font-weight: 700;
+            flex-shrink: 0;
+        }
+
+        .pricing-card:not(.popular) .pricing-features li {
+            color: var(--gray-600);
+        }
+
+        .pricing-card .btn {
+            width: 100%;
+        }
+
+        .pricing-card.popular .btn-primary {
+            background: var(--white);
+            color: var(--primary);
+        }
+
+        /* ========== TESTIMONIALS ========== */
+        .testimonials {
+            padding: 120px 24px;
+            background: var(--gray-50);
+        }
+
+        .testimonials-grid {
+            max-width: 1200px;
+            margin: 0 auto;
+            display: grid;
+            grid-template-columns: repeat(3, 1fr);
+            gap: 32px;
+        }
+
+        .testimonial-card {
+            background: var(--white);
+            border-radius: var(--radius-xl);
+            padding: 32px;
+            box-shadow: var(--shadow-md);
+        }
+
+        .testimonial-rating {
+            color: var(--warning);
+            font-size: 20px;
+            margin-bottom: 16px;
+        }
+
+        .testimonial-text {
+            font-size: 16px;
+            color: var(--gray-600);
+            line-height: 1.7;
+            margin-bottom: 24px;
+        }
+
+        .testimonial-author {
+            display: flex;
+            align-items: center;
+            gap: 16px;
+        }
+
+        .testimonial-avatar {
+            width: 48px;
+            height: 48px;
+            background: var(--gradient-primary);
+            border-radius: 50%;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            font-size: 20px;
+        }
+
+        .testimonial-name {
+            font-weight: 600;
+            color: var(--gray-900);
+        }
+
+        .testimonial-role {
+            font-size: 14px;
+            color: var(--gray-500);
+        }
+
+        /* ========== CTA ========== */
+        .cta {
+            padding: 120px 24px;
+            background: var(--white);
+            text-align: center;
+        }
+
+        .cta-content {
+            max-width: 700px;
+            margin: 0 auto;
+        }
+
+        .cta-title {
+            font-size: 42px;
+            font-weight: 800;
+            color: var(--gray-900);
+            margin-bottom: 24px;
+        }
+
+        .cta-text {
+            font-size: 18px;
+            color: var(--gray-500);
+            margin-bottom: 40px;
+        }
+
+        .cta-buttons {
+            display: flex;
+            gap: 16px;
+            justify-content: center;
+        }
+
+        /* ========== FOOTER ========== */
+        .footer {
+            background: var(--gray-900);
+            color: var(--gray-300);
+            padding: 80px 24px 40px;
+        }
+
+        .footer-content {
+            max-width: 1200px;
+            margin: 0 auto;
+            display: grid;
+            grid-template-columns: 2fr 1fr 1fr 1fr;
+            gap: 60px;
+        }
+
+        .footer-brand {
+            max-width: 300px;
+        }
+
+        .footer-logo {
+            display: flex;
+            align-items: center;
+            gap: 12px;
+            font-size: 24px;
+            font-weight: 700;
+            color: var(--white);
+            margin-bottom: 20px;
+        }
+
+        .footer-brand p {
+            line-height: 1.7;
+            margin-bottom: 24px;
+        }
+
+        .social-links {
+            display: flex;
+            gap: 16px;
+        }
+
+        .social-link {
+            width: 40px;
+            height: 40px;
+            background: var(--gray-800);
+            border-radius: var(--radius-sm);
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            color: var(--gray-400);
+            text-decoration: none;
+            transition: all 0.3s;
+        }
+
+        .social-link:hover {
+            background: var(--primary);
+            color: var(--white);
+        }
+
+        .footer-column h4 {
+            color: var(--white);
+            font-size: 16px;
+            font-weight: 600;
+            margin-bottom: 24px;
+        }
+
+        .footer-links {
+            list-style: none;
+        }
+
+        .footer-links li {
+            margin-bottom: 12px;
+        }
+
+        .footer-links a {
+            color: var(--gray-400);
+            text-decoration: none;
+            transition: color 0.3s;
+        }
+
+        .footer-links a:hover {
+            color: var(--white);
+        }
+
+        .footer-bottom {
+            max-width: 1200px;
+            margin: 60px auto 0;
+            padding-top: 40px;
+            border-top: 1px solid var(--gray-800);
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+        }
+
+        .footer-bottom p {
+            font-size: 14px;
+        }
+
+        .footer-legal {
+            display: flex;
+            gap: 24px;
+        }
+
+        .footer-legal a {
+            font-size: 14px;
+            color: var(--gray-400);
+            text-decoration: none;
+        }
+
+        .footer-legal a:hover {
+            color: var(--white);
+        }
+
+        /* ========== MOBILE MENU ========== */
+        .mobile-menu-btn {
+            display: none;
+            background: none;
+            border: none;
+            color: var(--white);
+            font-size: 28px;
+            cursor: pointer;
+        }
+
+        .navbar.scrolled .mobile-menu-btn {
+            color: var(--gray-800);
+        }
+
+        /* ========== RESPONSIVE ========== */
+        @media (max-width: 1024px) {
+            .hero-content {
+                grid-template-columns: 1fr;
+                text-align: center;
+            }
+
+            .hero-text p {
+                margin-left: auto;
+                margin-right: auto;
+            }
+
+            .hero-buttons {
+                justify-content: center;
+            }
+
+            .hero-stats {
+                justify-content: center;
+            }
+
+            .hero-visual {
+                display: none;
+            }
+
+            .features-grid {
+                grid-template-columns: repeat(2, 1fr);
+            }
+
+            .pricing-grid {
+                grid-template-columns: 1fr;
+                max-width: 400px;
+            }
+
+            .pricing-card.popular {
+                transform: none;
+            }
+
+            .pricing-card.popular:hover {
+                transform: translateY(-8px);
+            }
+
+            .testimonials-grid {
+                grid-template-columns: 1fr;
+            }
+
+            .footer-content {
+                grid-template-columns: 1fr 1fr;
+            }
+        }
+
+        @media (max-width: 768px) {
+            .nav-links {
+                display: none;
+            }
+
+            .mobile-menu-btn {
+                display: block;
+            }
+
+            .hero-text h1 {
+                font-size: 36px;
+            }
+
+            .section-title {
+                font-size: 32px;
+            }
+
+            .features-grid {
+                grid-template-columns: 1fr;
+            }
+
+            .step {
+                grid-template-columns: 1fr;
+            }
+
+            .step:nth-child(even) {
+                direction: ltr;
+            }
+
+            .cta-buttons {
+                flex-direction: column;
+            }
+
+            .footer-content {
+                grid-template-columns: 1fr;
+                gap: 40px;
+            }
+
+            .footer-bottom {
+                flex-direction: column;
+                gap: 20px;
+                text-align: center;
+            }
+        }
+
+        /* ========== ANIMATIONS ========== */
+        @keyframes float {
+            0%, 100% { transform: translateY(0); }
+            50% { transform: translateY(-20px); }
+        }
+
+        .animate-float {
+            animation: float 6s ease-in-out infinite;
+        }
+
+        @keyframes fadeInUp {
+            from {
+                opacity: 0;
+                transform: translateY(30px);
+            }
+            to {
+                opacity: 1;
+                transform: translateY(0);
+            }
+        }
+
+        .fade-in-up {
+            animation: fadeInUp 0.6s ease forwards;
+        }
+    </style>
+</head>
+<body>
+    <!-- Navbar -->
+    <nav class="navbar" id="navbar">
+        <div class="navbar-content">
+            <a href="#" class="logo">
+                <span class="logo-icon">🚗</span>
+                SchadensChat
+            </a>
+            <div class="nav-links">
+                <a href="#features" class="nav-link">Features</a>
+                <a href="#how-it-works" class="nav-link">So funktioniert's</a>
+                <a href="#pricing" class="nav-link">Preise</a>
+                <a href="werkstatt.html" class="btn btn-primary">Werkstatt-Login</a>
+            </div>
+            <button class="mobile-menu-btn" aria-label="Menu">&#9776;</button>
+        </div>
+    </nav>
+
+    <!-- Hero -->
+    <section class="hero">
+        <div class="hero-content">
+            <div class="hero-text">
+                <h1>
+                    Schaden melden.<br>
+                    <span>Angebote erhalten.</span><br>
+                    Einfach reparieren.
+                </h1>
+                <p>
+                    Laden Sie Fotos Ihres Fahrzeugschadens hoch und erhalten Sie innerhalb von Minuten Reparaturangebote von Werkstatten in Ihrer Nahe.
+                </p>
+                <div class="hero-buttons">
+                    <a href="index.html" class="btn btn-primary btn-lg">
+                        Schaden melden
+                    </a>
+                    <a href="werkstatt.html" class="btn btn-white btn-lg">
+                        Fur Werkstatten
+                    </a>
+                </div>
+                <div class="hero-stats">
+                    <div class="hero-stat">
+                        <div class="hero-stat-value">500+</div>
+                        <div class="hero-stat-label">Werkstatten</div>
+                    </div>
+                    <div class="hero-stat">
+                        <div class="hero-stat-value">10k+</div>
+                        <div class="hero-stat-label">Reparaturen</div>
+                    </div>
+                    <div class="hero-stat">
+                        <div class="hero-stat-value">4.8</div>
+                        <div class="hero-stat-label">Bewertung</div>
+                    </div>
+                </div>
+            </div>
+            <div class="hero-visual">
+                <div class="phone-mockup animate-float">
+                    <div class="phone-notch"></div>
+                    <div class="phone-screen">
+                        <div style="background: linear-gradient(135deg, #6366f1, #8b5cf6); height: 100%; display: flex; flex-direction: column; align-items: center; justify-content: center; color: white; padding: 20px; text-align: center;">
+                            <div style="font-size: 60px; margin-bottom: 20px;">📸</div>
+                            <div style="font-size: 18px; font-weight: 600; margin-bottom: 10px;">Foto hochladen</div>
+                            <div style="font-size: 14px; opacity: 0.8;">Schnell & einfach</div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </section>
+
+    <!-- Features -->
+    <section class="features" id="features">
+        <div class="section-header">
+            <span class="section-badge">Features</span>
+            <h2 class="section-title">Alles was Sie brauchen</h2>
+            <p class="section-subtitle">
+                SchadensChat macht die Schadensabwicklung einfach, schnell und transparent.
+            </p>
+        </div>
+        <div class="features-grid">
+            <div class="feature-card">
+                <div class="feature-icon">📸</div>
+                <h3 class="feature-title">Foto-Upload</h3>
+                <p class="feature-text">
+                    Machen Sie bis zu 5 Fotos Ihres Schadens. Unsere KI erkennt automatisch die Schadensart.
+                </p>
+            </div>
+            <div class="feature-card">
+                <div class="feature-icon">⚡</div>
+                <h3 class="feature-title">Schnelle Angebote</h3>
+                <p class="feature-text">
+                    Erhalten Sie innerhalb von Minuten Angebote von qualifizierten Werkstatten in Ihrer Nahe.
+                </p>
+            </div>
+            <div class="feature-card">
+                <div class="feature-icon">💬</div>
+                <h3 class="feature-title">Direkter Chat</h3>
+                <p class="feature-text">
+                    Kommunizieren Sie direkt mit Werkstatten. Stellen Sie Fragen und klaren Sie Details.
+                </p>
+            </div>
+            <div class="feature-card">
+                <div class="feature-icon">📍</div>
+                <h3 class="feature-title">Standort-basiert</h3>
+                <p class="feature-text">
+                    Finden Sie Werkstatten in Ihrer Nahe. Mit Anfahrtsbeschreibung und Entfernungsangabe.
+                </p>
+            </div>
+            <div class="feature-card">
+                <div class="feature-icon">🔒</div>
+                <h3 class="feature-title">Sicher & DSGVO</h3>
+                <p class="feature-text">
+                    Ihre Daten sind bei uns sicher. Vollstandig DSGVO-konform und verschlusselt.
+                </p>
+            </div>
+            <div class="feature-card">
+                <div class="feature-icon">💰</div>
+                <h3 class="feature-title">Preise vergleichen</h3>
+                <p class="feature-text">
+                    Vergleichen Sie Angebote transparent. Treffen Sie die beste Entscheidung fur Ihr Budget.
+                </p>
+            </div>
+        </div>
+    </section>
+
+    <!-- How it Works -->
+    <section class="how-it-works" id="how-it-works">
+        <div class="section-header">
+            <span class="section-badge">So funktioniert's</span>
+            <h2 class="section-title">In 3 einfachen Schritten</h2>
+            <p class="section-subtitle">
+                Von der Schadensmeldung bis zur Reparatur - schnell und unkompliziert.
+            </p>
+        </div>
+        <div class="steps-container">
+            <div class="step">
+                <div class="step-content">
+                    <div class="step-number">1</div>
+                    <h3 class="step-title">Schaden fotografieren</h3>
+                    <p class="step-text">
+                        Machen Sie Fotos von Ihrem Fahrzeugschaden. Je mehr Details, desto genauer die Angebote. Beschreiben Sie kurz, was passiert ist.
+                    </p>
+                </div>
+                <div class="step-visual">
+                    <span class="step-emoji">📱</span>
+                </div>
+            </div>
+            <div class="step">
+                <div class="step-content">
+                    <div class="step-number">2</div>
+                    <h3 class="step-title">Angebote erhalten</h3>
+                    <p class="step-text">
+                        Werkstatten in Ihrer Nahe sehen Ihre Anfrage und senden Ihnen Kostenvoranschlage. Vergleichen Sie Preise und Bewertungen.
+                    </p>
+                </div>
+                <div class="step-visual">
+                    <span class="step-emoji">📋</span>
+                </div>
+            </div>
+            <div class="step">
+                <div class="step-content">
+                    <div class="step-number">3</div>
+                    <h3 class="step-title">Werkstatt beauftragen</h3>
+                    <p class="step-text">
+                        Wahlen Sie Ihr bevorzugtes Angebot und beauftragen Sie die Werkstatt direkt uber die App. Vereinbaren Sie einen Termin.
+                    </p>
+                </div>
+                <div class="step-visual">
+                    <span class="step-emoji">🔧</span>
+                </div>
+            </div>
+        </div>
+    </section>
+
+    <!-- Pricing -->
+    <section class="pricing" id="pricing">
+        <div class="section-header">
+            <span class="section-badge">Preise fur Werkstatten</span>
+            <h2 class="section-title">Transparente Preise</h2>
+            <p class="section-subtitle">
+                Fur Kunden komplett kostenlos. Werkstatten zahlen nur bei Erfolg.
+            </p>
+        </div>
+        <div class="pricing-grid">
+            <div class="pricing-card">
+                <h3 class="pricing-name">Starter</h3>
+                <div class="pricing-price">49 EUR</div>
+                <div class="pricing-period">pro Monat</div>
+                <ul class="pricing-features">
+                    <li>10 Anfragen / Monat</li>
+                    <li>Basis-Profil</li>
+                    <li>Chat-Funktion</li>
+                    <li>E-Mail-Support</li>
+                </ul>
+                <a href="werkstatt.html" class="btn btn-secondary">Jetzt starten</a>
+            </div>
+            <div class="pricing-card popular">
+                <span class="popular-badge">Beliebt</span>
+                <h3 class="pricing-name">Professional</h3>
+                <div class="pricing-price">99 EUR</div>
+                <div class="pricing-period">pro Monat</div>
+                <ul class="pricing-features">
+                    <li>Unbegrenzte Anfragen</li>
+                    <li>Premium-Profil</li>
+                    <li>Prioritats-Listing</li>
+                    <li>Analytics Dashboard</li>
+                    <li>Telefon-Support</li>
+                </ul>
+                <a href="werkstatt.html" class="btn btn-primary">Jetzt starten</a>
+            </div>
+            <div class="pricing-card">
+                <h3 class="pricing-name">Enterprise</h3>
+                <div class="pricing-price">199 EUR</div>
+                <div class="pricing-period">pro Monat</div>
+                <ul class="pricing-features">
+                    <li>Alles aus Professional</li>
+                    <li>Multi-Standort</li>
+                    <li>API-Zugang</li>
+                    <li>Dedizierter Account Manager</li>
+                    <li>Custom Branding</li>
+                </ul>
+                <a href="werkstatt.html" class="btn btn-secondary">Kontakt</a>
+            </div>
+        </div>
+    </section>
+
+    <!-- Testimonials -->
+    <section class="testimonials">
+        <div class="section-header">
+            <span class="section-badge">Kundenstimmen</span>
+            <h2 class="section-title">Was unsere Nutzer sagen</h2>
+            <p class="section-subtitle">
+                Tausende zufriedene Kunden und Werkstatten vertrauen SchadensChat.
+            </p>
+        </div>
+        <div class="testimonials-grid">
+            <div class="testimonial-card">
+                <div class="testimonial-rating">★★★★★</div>
+                <p class="testimonial-text">
+                    "Super einfach! Ich hatte innerhalb von 20 Minuten 3 Angebote. Die Reparatur war gunstiger als gedacht."
+                </p>
+                <div class="testimonial-author">
+                    <div class="testimonial-avatar">👨</div>
+                    <div>
+                        <div class="testimonial-name">Thomas M.</div>
+                        <div class="testimonial-role">Autobesitzer</div>
+                    </div>
+                </div>
+            </div>
+            <div class="testimonial-card">
+                <div class="testimonial-rating">★★★★★</div>
+                <p class="testimonial-text">
+                    "Als Werkstatt bekommen wir jetzt viel mehr Anfragen. Die App ist perfekt fur unser Tagesgeschaft."
+                </p>
+                <div class="testimonial-author">
+                    <div class="testimonial-avatar">👩</div>
+                    <div>
+                        <div class="testimonial-name">Sandra K.</div>
+                        <div class="testimonial-role">Lackiererei-Inhaberin</div>
+                    </div>
+                </div>
+            </div>
+            <div class="testimonial-card">
+                <div class="testimonial-rating">★★★★★</div>
+                <p class="testimonial-text">
+                    "Endlich eine App, die funktioniert. Keine versteckten Kosten, alles transparent. Sehr zu empfehlen!"
+                </p>
+                <div class="testimonial-author">
+                    <div class="testimonial-avatar">👨</div>
+                    <div>
+                        <div class="testimonial-name">Michael R.</div>
+                        <div class="testimonial-role">Stammkunde</div>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </section>
+
+    <!-- CTA -->
+    <section class="cta">
+        <div class="cta-content">
+            <h2 class="cta-title">Bereit loszulegen?</h2>
+            <p class="cta-text">
+                Melden Sie jetzt Ihren Schaden und erhalten Sie kostenlos Angebote von Werkstatten in Ihrer Nahe.
+            </p>
+            <div class="cta-buttons">
+                <a href="index.html" class="btn btn-primary btn-lg">Schaden melden</a>
+                <a href="werkstatt.html" class="btn btn-secondary btn-lg">Werkstatt registrieren</a>
+            </div>
+        </div>
+    </section>
+
+    <!-- Footer -->
+    <footer class="footer">
+        <div class="footer-content">
+            <div class="footer-brand">
+                <div class="footer-logo">
+                    <span>🚗</span>
+                    SchadensChat
+                </div>
+                <p>
+                    Die schnellste Art, Fahrzeugschaden zu melden und Reparaturangebote von qualifizierten Werkstatten zu erhalten.
+                </p>
+                <div class="social-links">
+                    <a href="#" class="social-link">📘</a>
+                    <a href="#" class="social-link">📸</a>
+                    <a href="#" class="social-link">🐦</a>
+                </div>
+            </div>
+            <div class="footer-column">
+                <h4>Produkt</h4>
+                <ul class="footer-links">
+                    <li><a href="#features">Features</a></li>
+                    <li><a href="#pricing">Preise</a></li>
+                    <li><a href="#how-it-works">So funktioniert's</a></li>
+                    <li><a href="#">FAQ</a></li>
+                </ul>
+            </div>
+            <div class="footer-column">
+                <h4>Unternehmen</h4>
+                <ul class="footer-links">
+                    <li><a href="#">Uber uns</a></li>
+                    <li><a href="#">Karriere</a></li>
+                    <li><a href="#">Blog</a></li>
+                    <li><a href="#">Presse</a></li>
+                </ul>
+            </div>
+            <div class="footer-column">
+                <h4>Support</h4>
+                <ul class="footer-links">
+                    <li><a href="#">Hilfe-Center</a></li>
+                    <li><a href="#">Kontakt</a></li>
+                    <li><a href="#">Partner werden</a></li>
+                    <li><a href="#">API Docs</a></li>
+                </ul>
+            </div>
+        </div>
+        <div class="footer-bottom">
+            <p>© 2024 SchadensChat. Alle Rechte vorbehalten.</p>
+            <div class="footer-legal">
+                <a href="index.html#datenschutz">Datenschutz</a>
+                <a href="index.html#agb">AGB</a>
+                <a href="index.html#impressum">Impressum</a>
+            </div>
+        </div>
+    </footer>
+
+    <script>
+        // Navbar scroll effect
+        const navbar = document.getElementById('navbar');
+        window.addEventListener('scroll', () => {
+            if (window.scrollY > 50) {
+                navbar.classList.add('scrolled');
+            } else {
+                navbar.classList.remove('scrolled');
+            }
+        });
+
+        // Smooth scroll for anchor links
+        document.querySelectorAll('a[href^="#"]').forEach(anchor => {
+            anchor.addEventListener('click', function (e) {
+                e.preventDefault();
+                const target = document.querySelector(this.getAttribute('href'));
+                if (target) {
+                    target.scrollIntoView({
+                        behavior: 'smooth',
+                        block: 'start'
+                    });
+                }
+            });
+        });
+
+        // Mobile menu (simple toggle)
+        const mobileMenuBtn = document.querySelector('.mobile-menu-btn');
+        const navLinks = document.querySelector('.nav-links');
+
+        mobileMenuBtn?.addEventListener('click', () => {
+            navLinks.style.display = navLinks.style.display === 'flex' ? 'none' : 'flex';
+            navLinks.style.position = 'absolute';
+            navLinks.style.top = '100%';
+            navLinks.style.left = '0';
+            navLinks.style.right = '0';
+            navLinks.style.background = 'white';
+            navLinks.style.flexDirection = 'column';
+            navLinks.style.padding = '20px';
+            navLinks.style.gap = '16px';
+            navLinks.style.boxShadow = '0 10px 20px rgba(0,0,0,0.1)';
+        });
+
+        // Intersection Observer for animations
+        const observerOptions = {
+            threshold: 0.1,
+            rootMargin: '0px 0px -50px 0px'
+        };
+
+        const observer = new IntersectionObserver((entries) => {
+            entries.forEach(entry => {
+                if (entry.isIntersecting) {
+                    entry.target.classList.add('fade-in-up');
+                }
+            });
+        }, observerOptions);
+
+        document.querySelectorAll('.feature-card, .step, .pricing-card, .testimonial-card').forEach(el => {
+            observer.observe(el);
+        });
+    </script>
+</body>
+</html>

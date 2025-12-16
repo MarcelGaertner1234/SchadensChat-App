@@ -98,9 +98,18 @@ const RequestManager = {
 
         if (this.isFirestoreAvailable() && this.storage) {
             console.log('[RequestManager] Uploading photos to Storage...');
-            photoUrls = await Promise.all(
-                photos.map((photo, index) => this.uploadPhoto(photo.data, requestId, index))
-            );
+            // Upload photos individually with error handling (don't fail entire request if one upload fails)
+            photoUrls = [];
+            for (let index = 0; index < photos.length; index++) {
+                try {
+                    const url = await this.uploadPhoto(photos[index].data, requestId, index);
+                    photoUrls.push(url);
+                } catch (error) {
+                    console.error(`[RequestManager] Photo ${index} upload failed:`, error);
+                    // Use base64 as fallback for failed upload
+                    photoUrls.push(photos[index].data);
+                }
+            }
         }
 
         // Create request object
@@ -386,26 +395,31 @@ const RequestManager = {
      */
     async acceptOffer(requestId, offerId) {
         if (this.isFirestoreAvailable()) {
-            const batch = this.db.batch();
+            try {
+                const batch = this.db.batch();
 
-            // Update offer status
-            const offerRef = this.db.collection(this.requestsCollection)
-                .doc(requestId)
-                .collection('offers')
-                .doc(offerId);
-            batch.update(offerRef, { status: 'accepted' });
+                // Update offer status
+                const offerRef = this.db.collection(this.requestsCollection)
+                    .doc(requestId)
+                    .collection('offers')
+                    .doc(offerId);
+                batch.update(offerRef, { status: 'accepted' });
 
-            // Update request status
-            const requestRef = this.db.collection(this.requestsCollection).doc(requestId);
-            batch.update(requestRef, {
-                status: 'accepted',
-                acceptedOfferId: offerId,
-                updatedAt: firebase.firestore.FieldValue.serverTimestamp()
-            });
+                // Update request status
+                const requestRef = this.db.collection(this.requestsCollection).doc(requestId);
+                batch.update(requestRef, {
+                    status: 'accepted',
+                    acceptedOfferId: offerId,
+                    updatedAt: firebase.firestore.FieldValue.serverTimestamp()
+                });
 
-            await batch.commit();
-            console.log('[RequestManager] Offer accepted');
-            return true;
+                await batch.commit();
+                console.log('[RequestManager] Offer accepted');
+                return true;
+            } catch (error) {
+                console.error('[RequestManager] Accept offer error:', error);
+                // Fallback to local update on error
+            }
         }
 
         // Fallback

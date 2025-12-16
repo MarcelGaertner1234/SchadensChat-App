@@ -202,8 +202,10 @@ const App = {
      * Reset login form
      */
     resetLoginForm() {
-        document.getElementById('login-phone').value = '';
-        document.getElementById('login-code').value = '';
+        const phoneInput = document.getElementById('login-phone');
+        const codeInput = document.getElementById('login-code');
+        if (phoneInput) phoneInput.value = '';
+        if (codeInput) codeInput.value = '';
         document.getElementById('login-step-phone')?.classList.remove('hidden');
         document.getElementById('login-step-code')?.classList.add('hidden');
     },
@@ -483,8 +485,10 @@ const App = {
                 // Update display
                 if (display) {
                     display.classList.remove('hidden');
-                    document.getElementById('location-address').textContent = 'Standort ermittelt';
-                    document.getElementById('location-coords').textContent = this.request.location.address;
+                    const addressEl = document.getElementById('location-address');
+                    const coordsEl = document.getElementById('location-coords');
+                    if (addressEl) addressEl.textContent = 'Standort ermittelt';
+                    if (coordsEl) coordsEl.textContent = this.request.location.address;
                 }
 
                 btn.disabled = false;
@@ -748,11 +752,13 @@ const App = {
             return;
         }
 
+        const submitBtn = document.getElementById('submit-btn');
+
+        // Double-click protection: disable immediately BEFORE any async work
+        if (submitBtn) submitBtn.disabled = true;
+
         // Show loading
         this.showLoading(true);
-
-        const submitBtn = document.getElementById('submit-btn');
-        if (submitBtn) submitBtn.disabled = true;
 
         try {
             // Use RequestManager to create request with Firestore
@@ -761,7 +767,7 @@ const App = {
                 const newRequest = await RequestManager.createRequest(this.request, this.photos);
                 console.log('[App] Request created:', newRequest.id);
             } else {
-                // Fallback: Save to localStorage
+                // Fallback: Save to localStorage with error handling
                 const newRequest = {
                     id: 'req_' + Date.now(),
                     createdAt: new Date().toISOString(),
@@ -776,15 +782,20 @@ const App = {
                     offers: []
                 };
 
-                const requests = JSON.parse(localStorage.getItem('schadens-chat-requests') || '[]');
-                requests.unshift(newRequest);
-                localStorage.setItem('schadens-chat-requests', JSON.stringify(requests));
+                try {
+                    const requests = JSON.parse(localStorage.getItem('schadens-chat-requests') || '[]');
+                    requests.unshift(newRequest);
+                    localStorage.setItem('schadens-chat-requests', JSON.stringify(requests));
+                } catch (e) {
+                    console.error('[App] Failed to save request to localStorage:', e);
+                    throw e;
+                }
             }
 
             // Reset form
             this.resetForm();
 
-            // Navigate to success
+            // Navigate to success (keep button disabled - user is leaving page)
             this.showLoading(false);
             this.navigateTo('success');
 
@@ -792,6 +803,7 @@ const App = {
             console.error('[App] Submit error:', error);
             this.showToast(t('errorGeneric'), 'error');
             this.showLoading(false);
+            // Only re-enable button on error
             if (submitBtn) submitBtn.disabled = false;
         }
     },
@@ -881,7 +893,7 @@ const App = {
                 <div class="card mb-md" onclick="App.viewRequest('${req.id}')" style="cursor: pointer;">
                     <div class="flex gap-md">
                         <div style="width: 60px; height: 60px; border-radius: var(--radius-md); overflow: hidden; flex-shrink: 0;">
-                            <img src="${req.photos[0]}" style="width: 100%; height: 100%; object-fit: cover;">
+                            <img src="${req.photos && req.photos[0] ? req.photos[0] : 'data:image/svg+xml,<svg xmlns=%22http://www.w3.org/2000/svg%22 viewBox=%220 0 60 60%22><rect fill=%22%23667eea%22 width=%2260%22 height=%2260%22/><text x=%2230%22 y=%2235%22 text-anchor=%22middle%22 fill=%22white%22 font-size=%2220%22>📷</text></svg>'}" style="width: 100%; height: 100%; object-fit: cover;">
                         </div>
                         <div class="flex-1">
                             <div class="flex justify-between items-center mb-sm">
@@ -935,7 +947,7 @@ const App = {
             infoContainer.innerHTML = `
                 <div class="flex gap-md">
                     <div style="width: 80px; height: 80px; border-radius: var(--radius-md); overflow: hidden; flex-shrink: 0;">
-                        <img src="${request.photos[0]}" style="width: 100%; height: 100%; object-fit: cover;">
+                        <img src="${request.photos && request.photos[0] ? request.photos[0] : 'data:image/svg+xml,<svg xmlns=%22http://www.w3.org/2000/svg%22 viewBox=%220 0 80 80%22><rect fill=%22%23667eea%22 width=%2280%22 height=%2280%22/><text x=%2240%22 y=%2248%22 text-anchor=%22middle%22 fill=%22white%22 font-size=%2224%22>📷</text></svg>'}" style="width: 100%; height: 100%; object-fit: cover;">
                     </div>
                     <div>
                         <h3>${request.vehicle.brand || 'Fahrzeug'} ${request.vehicle.model || ''}</h3>
@@ -964,12 +976,16 @@ const App = {
         // For demo: generate some fake offers
         if (request.offers.length === 0 && Math.random() > 0.5) {
             request.offers = this.generateDemoOffers();
-            // Update localStorage
-            const requests = JSON.parse(localStorage.getItem('schadens-chat-requests') || '[]');
-            const idx = requests.findIndex(r => r.id === request.id);
-            if (idx >= 0) {
-                requests[idx] = request;
-                localStorage.setItem('schadens-chat-requests', JSON.stringify(requests));
+            // Update localStorage with error handling
+            try {
+                const requests = JSON.parse(localStorage.getItem('schadens-chat-requests') || '[]');
+                const idx = requests.findIndex(r => r.id === request.id);
+                if (idx >= 0) {
+                    requests[idx] = request;
+                    localStorage.setItem('schadens-chat-requests', JSON.stringify(requests));
+                }
+            } catch (e) {
+                console.error('[App] Failed to update offers in localStorage:', e);
             }
         }
 
@@ -1048,13 +1064,17 @@ const App = {
     acceptOffer(offerId) {
         this.showToast('Angebot angenommen! Die Werkstatt wurde benachrichtigt.', 'success');
 
-        // Update request status
-        const requests = JSON.parse(localStorage.getItem('schadens-chat-requests') || '[]');
-        const request = requests.find(r => r.id === this.currentRequestId);
-        if (request) {
-            request.status = 'accepted';
-            request.acceptedOfferId = offerId;
-            localStorage.setItem('schadens-chat-requests', JSON.stringify(requests));
+        // Update request status with error handling
+        try {
+            const requests = JSON.parse(localStorage.getItem('schadens-chat-requests') || '[]');
+            const request = requests.find(r => r.id === this.currentRequestId);
+            if (request) {
+                request.status = 'accepted';
+                request.acceptedOfferId = offerId;
+                localStorage.setItem('schadens-chat-requests', JSON.stringify(requests));
+            }
+        } catch (e) {
+            console.error('[App] Failed to accept offer:', e);
         }
 
         // Open chat
@@ -1067,13 +1087,18 @@ const App = {
     openChat(offerId) {
         this.currentOfferId = offerId;
 
-        // Find offer
-        const requests = JSON.parse(localStorage.getItem('schadens-chat-requests') || '[]');
-        const request = requests.find(r => r.id === this.currentRequestId);
-        const offer = request?.offers.find(o => o.id === offerId);
+        // Find offer with error handling
+        try {
+            const requests = JSON.parse(localStorage.getItem('schadens-chat-requests') || '[]');
+            const request = requests.find(r => r.id === this.currentRequestId);
+            const offer = request?.offers?.find(o => o.id === offerId);
 
-        if (offer) {
-            document.getElementById('chat-workshop-name').textContent = offer.workshopName;
+            if (offer) {
+                const workshopNameEl = document.getElementById('chat-workshop-name');
+                if (workshopNameEl) workshopNameEl.textContent = offer.workshopName;
+            }
+        } catch (e) {
+            console.error('[App] Failed to open chat:', e);
         }
 
         // Load or create chat messages
@@ -1089,9 +1114,15 @@ const App = {
         const container = document.getElementById('chat-messages');
         if (!container) return;
 
-        // Get messages from localStorage
+        // Get messages from localStorage with error handling
         const chatKey = `schadens-chat-messages-${this.currentRequestId}-${this.currentOfferId}`;
-        const messages = JSON.parse(localStorage.getItem(chatKey) || '[]');
+        let messages = [];
+        try {
+            messages = JSON.parse(localStorage.getItem(chatKey) || '[]');
+        } catch (e) {
+            console.error('[App] Failed to parse chat messages:', e);
+            messages = [];
+        }
 
         // Add welcome message if empty
         if (messages.length === 0) {
@@ -1101,7 +1132,11 @@ const App = {
                 text: 'Hallo! Vielen Dank für Ihre Anfrage. Wie kann ich Ihnen helfen?',
                 timestamp: new Date().toISOString()
             });
-            localStorage.setItem(chatKey, JSON.stringify(messages));
+            try {
+                localStorage.setItem(chatKey, JSON.stringify(messages));
+            } catch (e) {
+                console.error('[App] Failed to save welcome message:', e);
+            }
         }
 
         container.innerHTML = messages.map(msg => {
@@ -1126,13 +1161,25 @@ const App = {
      */
     sendMessage() {
         const input = document.getElementById('chat-input');
+        const sendBtn = document.getElementById('chat-send-btn');
         const text = input?.value.trim();
 
         if (!text) return;
 
-        // Get messages
+        // Double-click protection: disable immediately
+        if (input) input.value = '';
+        if (input) input.style.height = 'auto';
+        if (sendBtn) sendBtn.disabled = true;
+
+        // Get messages with error handling
         const chatKey = `schadens-chat-messages-${this.currentRequestId}-${this.currentOfferId}`;
-        const messages = JSON.parse(localStorage.getItem(chatKey) || '[]');
+        let messages = [];
+        try {
+            messages = JSON.parse(localStorage.getItem(chatKey) || '[]');
+        } catch (e) {
+            console.error('[App] Failed to parse chat messages:', e);
+            messages = [];
+        }
 
         // Add new message
         messages.push({
@@ -1142,12 +1189,13 @@ const App = {
             timestamp: new Date().toISOString()
         });
 
-        localStorage.setItem(chatKey, JSON.stringify(messages));
-
-        // Clear input
-        input.value = '';
-        input.style.height = 'auto';
-        document.getElementById('chat-send-btn').disabled = true;
+        try {
+            localStorage.setItem(chatKey, JSON.stringify(messages));
+        } catch (e) {
+            console.error('[App] Failed to save chat messages:', e);
+            this.showToast('Nachricht konnte nicht gespeichert werden', 'error');
+            return;
+        }
 
         // Reload messages
         this.loadChatMessages();
@@ -1162,16 +1210,19 @@ const App = {
             ];
             const reply = replies[Math.floor(Math.random() * replies.length)];
 
-            const currentMessages = JSON.parse(localStorage.getItem(chatKey) || '[]');
-            currentMessages.push({
-                id: 'msg_' + Date.now(),
-                type: 'received',
-                text: reply,
-                timestamp: new Date().toISOString()
-            });
-            localStorage.setItem(chatKey, JSON.stringify(currentMessages));
-
-            this.loadChatMessages();
+            try {
+                const currentMessages = JSON.parse(localStorage.getItem(chatKey) || '[]');
+                currentMessages.push({
+                    id: 'msg_' + Date.now(),
+                    type: 'received',
+                    text: reply,
+                    timestamp: new Date().toISOString()
+                });
+                localStorage.setItem(chatKey, JSON.stringify(currentMessages));
+                this.loadChatMessages();
+            } catch (e) {
+                console.error('[App] Failed to save reply:', e);
+            }
         }, 1500);
     },
 

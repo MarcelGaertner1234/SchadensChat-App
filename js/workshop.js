@@ -1194,20 +1194,28 @@ const Workshop = {
      * Send offer
      */
     async sendOffer() {
-        const price = parseInt(document.getElementById('offer-price').value);
-        const duration = parseInt(document.getElementById('offer-duration').value);
-        const note = document.getElementById('offer-note').value.trim();
+        const priceInput = document.getElementById('offer-price');
+        const durationInput = document.getElementById('offer-duration');
+        const noteInput = document.getElementById('offer-note');
+
+        const priceValue = priceInput?.value?.trim() || '';
+        const durationValue = durationInput?.value?.trim() || '';
+        const note = noteInput?.value?.trim() || '';
+
+        // Parse with proper validation (handle empty string and NaN)
+        const price = priceValue !== '' ? parseInt(priceValue, 10) : NaN;
+        const duration = durationValue !== '' ? parseInt(durationValue, 10) : NaN;
 
         // Validate inputs with visual feedback
         let hasErrors = false;
 
-        if (!price || price <= 0) {
-            this.validateInput('offer-price', v => v && parseInt(v) > 0, 'Bitte gültigen Preis eingeben (mind. 1€)');
+        if (isNaN(price) || price <= 0) {
+            this.validateInput('offer-price', v => v && !isNaN(parseInt(v, 10)) && parseInt(v, 10) > 0, 'Bitte gültigen Preis eingeben (mind. 1€)');
             hasErrors = true;
         }
 
-        if (!duration || duration <= 0) {
-            this.validateInput('offer-duration', v => v && parseInt(v) > 0, 'Bitte gültige Dauer eingeben (mind. 1 Tag)');
+        if (isNaN(duration) || duration <= 0) {
+            this.validateInput('offer-duration', v => v && !isNaN(parseInt(v, 10)) && parseInt(v, 10) > 0, 'Bitte gültige Dauer eingeben (mind. 1 Tag)');
             hasErrors = true;
         }
 
@@ -1550,14 +1558,17 @@ const Workshop = {
      */
     async sendMessage() {
         const input = document.getElementById('ws-chat-input');
+        const sendBtn = document.getElementById('ws-chat-send-btn');
         const text = input?.value.trim();
 
         if (!text) return;
 
-        // Clear input immediately
-        input.value = '';
-        input.style.height = 'auto';
-        document.getElementById('ws-chat-send-btn').disabled = true;
+        // Double-click protection: Clear input and disable button immediately
+        if (input) {
+            input.value = '';
+            input.style.height = 'auto';
+        }
+        if (sendBtn) sendBtn.disabled = true;
 
         // Send via Firestore if available
         if (typeof WorkshopRequests !== 'undefined' && WorkshopRequests.isFirestoreAvailable()) {
@@ -1567,21 +1578,34 @@ const Workshop = {
             } catch (error) {
                 console.error('[Workshop] Send message error:', error);
                 this.showToast('Nachricht konnte nicht gesendet werden', 'error');
+                // Re-enable button on error so user can retry
+                if (sendBtn) sendBtn.disabled = false;
             }
         } else {
-            // Fallback to localStorage
-            const chatKey = `schadens-chat-ws-messages-${this.currentRequestId}`;
-            const messages = JSON.parse(localStorage.getItem(chatKey) || '[]');
+            // Fallback to localStorage with error handling
+            try {
+                const chatKey = `schadens-chat-ws-messages-${this.currentRequestId}`;
+                let messages = [];
+                try {
+                    messages = JSON.parse(localStorage.getItem(chatKey) || '[]');
+                } catch (e) {
+                    console.error('[Workshop] Failed to parse chat messages:', e);
+                    messages = [];
+                }
 
-            messages.push({
-                id: 'msg_' + Date.now(),
-                type: 'sent',
-                text: text,
-                timestamp: new Date().toISOString()
-            });
+                messages.push({
+                    id: 'msg_' + Date.now(),
+                    type: 'sent',
+                    text: text,
+                    timestamp: new Date().toISOString()
+                });
 
-            localStorage.setItem(chatKey, JSON.stringify(messages));
-            this.loadWorkshopChat();
+                localStorage.setItem(chatKey, JSON.stringify(messages));
+                this.loadWorkshopChat();
+            } catch (e) {
+                console.error('[Workshop] Failed to save message:', e);
+                this.showToast('Nachricht konnte nicht gespeichert werden', 'error');
+            }
         }
     },
 
@@ -1590,8 +1614,13 @@ const Workshop = {
      */
     getLastMessage(requestId) {
         const chatKey = `schadens-chat-ws-messages-${requestId}`;
-        const messages = JSON.parse(localStorage.getItem(chatKey) || '[]');
-        return messages.length > 0 ? messages[messages.length - 1] : null;
+        try {
+            const messages = JSON.parse(localStorage.getItem(chatKey) || '[]');
+            return messages.length > 0 ? messages[messages.length - 1] : null;
+        } catch (e) {
+            console.error('[Workshop] Failed to parse messages:', e);
+            return null;
+        }
     },
 
     /**

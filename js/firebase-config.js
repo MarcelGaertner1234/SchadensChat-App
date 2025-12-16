@@ -67,11 +67,21 @@ const FirebaseConfig = {
 
                 // Enable offline persistence
                 this.db.enablePersistence({ synchronizeTabs: true })
+                    .then(() => {
+                        console.log('[Firebase] Offline persistence enabled');
+                        this.offlinePersistenceEnabled = true;
+                    })
                     .catch(err => {
+                        this.offlinePersistenceEnabled = false;
                         if (err.code === 'failed-precondition') {
-                            console.warn('[Firebase] Multiple tabs open, persistence disabled');
+                            // Multiple tabs open - this is expected, not a critical error
+                            console.warn('[Firebase] Multiple tabs open, persistence disabled in this tab');
                         } else if (err.code === 'unimplemented') {
-                            console.warn('[Firebase] Browser does not support persistence');
+                            // Browser doesn't support persistence
+                            console.warn('[Firebase] Browser does not support offline persistence');
+                        } else {
+                            // Unexpected error
+                            console.error('[Firebase] Persistence error:', err);
                         }
                     });
 

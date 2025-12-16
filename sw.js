@@ -58,7 +58,7 @@ self.addEventListener('activate', event => {
     );
 });
 
-// Fetch event - serve from cache, fallback to network
+// Fetch event - Stale-While-Revalidate strategy for better cache freshness
 self.addEventListener('fetch', event => {
     // Skip non-GET requests
     if (event.request.method !== 'GET') return;
@@ -66,39 +66,52 @@ self.addEventListener('fetch', event => {
     // Skip external requests
     if (!event.request.url.startsWith(self.location.origin)) return;
 
+    // Skip Firebase and API requests (let them go direct to network)
+    if (event.request.url.includes('firestore.googleapis.com') ||
+        event.request.url.includes('firebase') ||
+        event.request.url.includes('/api/')) {
+        return;
+    }
+
+    // Use Stale-While-Revalidate: return cache immediately, update in background
     event.respondWith(
-        caches.match(event.request)
-            .then(cachedResponse => {
+        caches.open(CACHE_NAME).then(cache => {
+            return cache.match(event.request).then(cachedResponse => {
+                // Fetch from network in background to update cache
+                const fetchPromise = fetch(event.request)
+                    .then(networkResponse => {
+                        // Only cache successful responses
+                        if (networkResponse && networkResponse.status === 200) {
+                            cache.put(event.request, networkResponse.clone());
+                        }
+                        return networkResponse;
+                    })
+                    .catch(error => {
+                        console.warn('[SW] Network fetch failed:', error);
+                        // Return null if network fails - we'll use cache
+                        return null;
+                    });
+
+                // Return cached response immediately if available
                 if (cachedResponse) {
-                    // Return cached version
+                    // Update cache in background (stale-while-revalidate)
+                    fetchPromise; // Fire and forget
                     return cachedResponse;
                 }
 
-                // Try network
-                return fetch(event.request)
-                    .then(response => {
-                        // Don't cache non-successful responses
-                        if (!response || response.status !== 200) {
-                            return response;
-                        }
-
-                        // Clone and cache the response
-                        const responseToCache = response.clone();
-                        caches.open(CACHE_NAME)
-                            .then(cache => {
-                                cache.put(event.request, responseToCache);
-                            });
-
-                        return response;
-                    })
-                    .catch(() => {
-                        // Offline fallback for navigation requests
-                        if (event.request.mode === 'navigate') {
-                            return caches.match(OFFLINE_URL);
-                        }
-                        return new Response('Offline', { status: 503 });
-                    });
-            })
+                // No cache - wait for network
+                return fetchPromise.then(networkResponse => {
+                    if (networkResponse) {
+                        return networkResponse;
+                    }
+                    // Network failed and no cache - return offline page for navigation
+                    if (event.request.mode === 'navigate') {
+                        return caches.match(OFFLINE_URL);
+                    }
+                    return new Response('Offline', { status: 503 });
+                });
+            });
+        })
     );
 });
 

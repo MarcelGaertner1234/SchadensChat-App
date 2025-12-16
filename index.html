@@ -5,7 +5,7 @@
     <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no, viewport-fit=cover">
     <meta name="apple-mobile-web-app-capable" content="yes">
     <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
-    <meta name="theme-color" content="#667eea">
+    <meta name="theme-color" content="#1e3a5f">
     <meta name="description" content="SchadensChat - Foto machen, Angebote erhalten!">
 
     <title>SchadensChat</title>
@@ -26,6 +26,75 @@
     </script>
 </head>
 <body class="no-pull-refresh">
+    <!-- SVG Icon Definitions -->
+    <svg xmlns="http://www.w3.org/2000/svg" style="display: none;">
+        <symbol id="icon-car" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+            <path d="M14 16H9m10 0h3v-3.15a1 1 0 0 0-.84-.99L16 11l-2.7-3.6a1 1 0 0 0-.8-.4H5.24a2 2 0 0 0-1.8 1.1l-.8 1.63A6 6 0 0 0 2 12.42V16h2"/>
+            <circle cx="6.5" cy="16.5" r="2.5"/><circle cx="16.5" cy="16.5" r="2.5"/>
+        </symbol>
+        <symbol id="icon-camera" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+            <path d="M14.5 4h-5L7 7H4a2 2 0 0 0-2 2v9a2 2 0 0 0 2 2h16a2 2 0 0 0 2-2V9a2 2 0 0 0-2-2h-3l-2.5-3z"/>
+            <circle cx="12" cy="13" r="3"/>
+        </symbol>
+        <symbol id="icon-clipboard" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+            <rect x="8" y="2" width="8" height="4" rx="1" ry="1"/><path d="M16 4h2a2 2 0 0 1 2 2v14a2 2 0 0 1-2 2H6a2 2 0 0 1-2-2V6a2 2 0 0 1 2-2h2"/>
+        </symbol>
+        <symbol id="icon-lock" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+            <rect x="3" y="11" width="18" height="11" rx="2" ry="2"/><path d="M7 11V7a5 5 0 0 1 10 0v4"/>
+        </symbol>
+        <symbol id="icon-user" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+            <path d="M20 21v-2a4 4 0 0 0-4-4H8a4 4 0 0 0-4 4v2"/><circle cx="12" cy="7" r="4"/>
+        </symbol>
+        <symbol id="icon-zap" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+            <polygon points="13 2 3 14 12 14 11 22 21 10 12 10 13 2"/>
+        </symbol>
+        <symbol id="icon-dollar" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+            <line x1="12" y1="1" x2="12" y2="23"/><path d="M17 5H9.5a3.5 3.5 0 0 0 0 7h5a3.5 3.5 0 0 1 0 7H6"/>
+        </symbol>
+        <symbol id="icon-shield" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+            <path d="M12 22s8-4 8-10V5l-8-3-8 3v7c0 6 8 10 8 10z"/>
+        </symbol>
+        <symbol id="icon-sun" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+            <circle cx="12" cy="12" r="5"/><line x1="12" y1="1" x2="12" y2="3"/><line x1="12" y1="21" x2="12" y2="23"/><line x1="4.22" y1="4.22" x2="5.64" y2="5.64"/><line x1="18.36" y1="18.36" x2="19.78" y2="19.78"/><line x1="1" y1="12" x2="3" y2="12"/><line x1="21" y1="12" x2="23" y2="12"/><line x1="4.22" y1="19.78" x2="5.64" y2="18.36"/><line x1="18.36" y1="5.64" x2="19.78" y2="4.22"/>
+        </symbol>
+        <symbol id="icon-moon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+            <path d="M21 12.79A9 9 0 1 1 11.21 3 7 7 0 0 0 21 12.79z"/>
+        </symbol>
+        <symbol id="icon-image" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+            <rect x="3" y="3" width="18" height="18" rx="2" ry="2"/><circle cx="8.5" cy="8.5" r="1.5"/><polyline points="21 15 16 10 5 21"/>
+        </symbol>
+        <symbol id="icon-lightbulb" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+            <line x1="9" y1="18" x2="15" y2="18"/><line x1="10" y1="22" x2="14" y2="22"/><path d="M15.09 14c.18-.98.65-1.74 1.41-2.5A4.65 4.65 0 0 0 18 8 6 6 0 0 0 6 8c0 1 .23 2.23 1.5 3.5A4.61 4.61 0 0 1 8.91 14"/>
+        </symbol>
+        <symbol id="icon-check-circle" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+            <path d="M22 11.08V12a10 10 0 1 1-5.93-9.14"/><polyline points="22 4 12 14.01 9 11.01"/>
+        </symbol>
+        <symbol id="icon-message" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+            <path d="M21 15a2 2 0 0 1-2 2H7l-4 4V5a2 2 0 0 1 2-2h14a2 2 0 0 1 2 2z"/>
+        </symbol>
+        <symbol id="icon-settings" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+            <circle cx="12" cy="12" r="3"/><path d="M19.4 15a1.65 1.65 0 0 0 .33 1.82l.06.06a2 2 0 0 1 0 2.83 2 2 0 0 1-2.83 0l-.06-.06a1.65 1.65 0 0 0-1.82-.33 1.65 1.65 0 0 0-1 1.51V21a2 2 0 0 1-2 2 2 2 0 0 1-2-2v-.09A1.65 1.65 0 0 0 9 19.4a1.65 1.65 0 0 0-1.82.33l-.06.06a2 2 0 0 1-2.83 0 2 2 0 0 1 0-2.83l.06-.06a1.65 1.65 0 0 0 .33-1.82 1.65 1.65 0 0 0-1.51-1H3a2 2 0 0 1-2-2 2 2 0 0 1 2-2h.09A1.65 1.65 0 0 0 4.6 9a1.65 1.65 0 0 0-.33-1.82l-.06-.06a2 2 0 0 1 0-2.83 2 2 0 0 1 2.83 0l.06.06a1.65 1.65 0 0 0 1.82.33H9a1.65 1.65 0 0 0 1-1.51V3a2 2 0 0 1 2-2 2 2 0 0 1 2 2v.09a1.65 1.65 0 0 0 1 1.51 1.65 1.65 0 0 0 1.82-.33l.06-.06a2 2 0 0 1 2.83 0 2 2 0 0 1 0 2.83l-.06.06a1.65 1.65 0 0 0-.33 1.82V9a1.65 1.65 0 0 0 1.51 1H21a2 2 0 0 1 2 2 2 2 0 0 1-2 2h-.09a1.65 1.65 0 0 0-1.51 1z"/>
+        </symbol>
+        <symbol id="icon-arrow-left" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+            <line x1="19" y1="12" x2="5" y2="12"/><polyline points="12 19 5 12 12 5"/>
+        </symbol>
+        <symbol id="icon-arrow-right" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+            <line x1="5" y1="12" x2="19" y2="12"/><polyline points="12 5 19 12 12 19"/>
+        </symbol>
+        <symbol id="icon-check" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+            <polyline points="20 6 9 17 4 12"/>
+        </symbol>
+        <symbol id="icon-wrench" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+            <path d="M14.7 6.3a1 1 0 0 0 0 1.4l1.6 1.6a1 1 0 0 0 1.4 0l3.77-3.77a6 6 0 0 1-7.94 7.94l-6.91 6.91a2.12 2.12 0 0 1-3-3l6.91-6.91a6 6 0 0 1 7.94-7.94l-3.76 3.76z"/>
+        </symbol>
+        <symbol id="icon-smartphone" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+            <rect x="5" y="2" width="14" height="20" rx="2" ry="2"/><line x1="12" y1="18" x2="12.01" y2="18"/>
+        </symbol>
+        <symbol id="icon-clock" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+            <circle cx="12" cy="12" r="10"/><polyline points="12 6 12 12 16 14"/>
+        </symbol>
+    </svg>
+
     <div class="app" id="app">
 
         <!-- ========== STARTSEITE ========== -->
@@ -37,7 +106,7 @@
 
                 <!-- Logo & Branding -->
                 <div class="text-center mb-lg" style="padding-top: calc(var(--safe-top) + 60px); position: relative; z-index: 1;">
-                    <div class="hero-icon animate-float">🚗</div>
+                    <div class="hero-icon"><svg class="icon icon-2xl"><use href="#icon-car"></use></svg></div>
                     <h1 class="hero-title animate-bounce-in">
                         <span data-i18n="appName">SchadensChat</span>
                     </h1>
@@ -57,14 +126,14 @@
                         </p>
 
                         <button class="btn btn-primary btn-lg btn-block btn-glow" onclick="App.navigateTo('photo')">
-                            <span style="font-size: 24px;">📸</span>
+                            <svg class="icon icon-lg"><use href="#icon-camera"></use></svg>
                             <span data-i18n="startButton">Schaden melden</span>
                         </button>
                     </div>
 
                     <!-- Meine Anfragen -->
                     <button class="btn btn-glass btn-block animate-bounce-in" style="animation-delay: 0.4s;" onclick="App.navigateTo('requests')">
-                        <span style="font-size: 20px;">📋</span>
+                        <svg class="icon icon-md"><use href="#icon-clipboard"></use></svg>
                         <span data-i18n="myRequests">Meine Anfragen</span>
                     </button>
 
@@ -72,12 +141,12 @@
                     <div class="animate-bounce-in" style="animation-delay: 0.45s; margin-top: var(--space-md);">
                         <!-- Login Button (visible when not logged in) -->
                         <button id="nav-login-btn" class="btn btn-glass btn-block" onclick="App.navigateTo('login')">
-                            <span style="font-size: 20px;">🔐</span>
+                            <svg class="icon icon-md"><use href="#icon-lock"></use></svg>
                             <span>Anmelden</span>
                         </button>
                         <!-- Profile Button (hidden, visible when logged in) -->
                         <button id="nav-profile-btn" class="btn btn-glass btn-block hidden" onclick="App.navigateTo('profile')">
-                            <span style="font-size: 20px;">👤</span>
+                            <svg class="icon icon-md"><use href="#icon-user"></use></svg>
                             <span>Mein Profil</span>
                         </button>
                     </div>
@@ -85,15 +154,15 @@
                     <!-- Feature Highlights -->
                     <div class="feature-grid animate-bounce-in" style="animation-delay: 0.5s; margin-top: var(--space-xl);">
                         <div class="feature-item">
-                            <span class="feature-icon">⚡</span>
+                            <svg class="icon icon-lg feature-icon"><use href="#icon-zap"></use></svg>
                             <span class="feature-text">Schnelle Antwort</span>
                         </div>
                         <div class="feature-item">
-                            <span class="feature-icon">💰</span>
+                            <svg class="icon icon-lg feature-icon"><use href="#icon-dollar"></use></svg>
                             <span class="feature-text">Beste Preise</span>
                         </div>
                         <div class="feature-item">
-                            <span class="feature-icon">🔒</span>
+                            <svg class="icon icon-lg feature-icon"><use href="#icon-shield"></use></svg>
                             <span class="feature-text">100% Sicher</span>
                         </div>
                     </div>
@@ -104,8 +173,8 @@
                     <!-- Theme Toggle -->
                     <div class="theme-toggle-container text-center mb-lg">
                         <button class="theme-toggle-btn" onclick="App.toggleTheme()" aria-label="Theme wechseln">
-                            <span class="theme-icon theme-icon-light">☀️</span>
-                            <span class="theme-icon theme-icon-dark">🌙</span>
+                            <svg class="icon theme-icon theme-icon-light"><use href="#icon-sun"></use></svg>
+                            <svg class="icon theme-icon theme-icon-dark"><use href="#icon-moon"></use></svg>
                             <span class="theme-toggle-slider"></span>
                         </button>
                     </div>
@@ -138,7 +207,7 @@
                 <div class="header-content">
                     <div class="header-left">
                         <button class="btn btn-icon btn-secondary btn-sm" onclick="App.navigateTo('home')">
-                            ←
+                            <svg class="icon icon-sm"><use href="#icon-arrow-left"></use></svg>
                         </button>
                     </div>
                     <div class="header-center">
@@ -164,7 +233,7 @@
                 <!-- Foto-Grid -->
                 <div class="photo-grid mb-lg" id="photo-grid">
                     <div class="photo-item photo-add" onclick="App.capturePhoto()">
-                        <span class="photo-add-icon">📷</span>
+                        <svg class="icon icon-xl photo-add-icon"><use href="#icon-camera"></use></svg>
                         <span class="photo-add-text" data-i18n="takePhoto">Foto aufnehmen</span>
                     </div>
                 </div>
@@ -176,14 +245,14 @@
                 <!-- Buttons -->
                 <div class="flex gap-sm mb-lg">
                     <button class="btn btn-secondary flex-1" onclick="App.openGallery()">
-                        <span>🖼️</span>
+                        <svg class="icon icon-md"><use href="#icon-image"></use></svg>
                         <span data-i18n="choosePhoto">Aus Galerie</span>
                     </button>
                 </div>
 
                 <!-- Tipp -->
                 <div class="tip-card">
-                    <span class="tip-icon">💡</span>
+                    <svg class="icon icon-md tip-icon"><use href="#icon-lightbulb"></use></svg>
                     <span class="tip-text" data-i18n="photoTip">Tipp: Fotografiere aus verschiedenen Winkeln</span>
                 </div>
 
@@ -197,7 +266,7 @@
                 <!-- Weiter-Button -->
                 <button class="btn btn-primary btn-lg btn-block" id="photo-next-btn" onclick="App.navigateTo('describe')" disabled>
                     <span data-i18n="next">Weiter</span>
-                    <span>→</span>
+                    <svg class="icon icon-sm"><use href="#icon-arrow-right"></use></svg>
                 </button>
             </main>
         </div>
@@ -208,7 +277,7 @@
                 <div class="header-content">
                     <div class="header-left">
                         <button class="btn btn-icon btn-secondary btn-sm" onclick="App.navigateTo('photo')">
-                            ←
+                            <svg class="icon icon-sm"><use href="#icon-arrow-left"></use></svg>
                         </button>
                     </div>
                     <div class="header-center">
@@ -284,7 +353,7 @@
                 <!-- Weiter-Button -->
                 <button class="btn btn-primary btn-lg btn-block" onclick="App.navigateTo('location')">
                     <span data-i18n="next">Weiter</span>
-                    <span>→</span>
+                    <svg class="icon icon-sm"><use href="#icon-arrow-right"></use></svg>
                 </button>
             </main>
         </div>
@@ -295,7 +364,7 @@
                 <div class="header-content">
                     <div class="header-left">
                         <button class="btn btn-icon btn-secondary btn-sm" onclick="App.navigateTo('describe')">
-                            ←
+                            <svg class="icon icon-sm"><use href="#icon-arrow-left"></use></svg>
                         </button>
                     </div>
                     <div class="header-center">
@@ -358,7 +427,7 @@
                 <!-- Weiter-Button -->
                 <button class="btn btn-primary btn-lg btn-block" id="location-next-btn" onclick="App.navigateTo('contact')" disabled>
                     <span data-i18n="next">Weiter</span>
-                    <span>→</span>
+                    <svg class="icon icon-sm"><use href="#icon-arrow-right"></use></svg>
                 </button>
             </main>
         </div>
@@ -369,7 +438,7 @@
                 <div class="header-content">
                     <div class="header-left">
                         <button class="btn btn-icon btn-secondary btn-sm" onclick="App.navigateTo('location')">
-                            ←
+                            <svg class="icon icon-sm"><use href="#icon-arrow-left"></use></svg>
                         </button>
                     </div>
                     <div class="header-center">
@@ -412,7 +481,7 @@
 
                 <!-- Datenschutz-Hinweis -->
                 <div class="tip-card" style="margin-bottom: var(--space-lg);">
-                    <span class="tip-icon">🔒</span>
+                    <svg class="icon icon-md tip-icon"><use href="#icon-shield"></use></svg>
                     <span class="tip-text" data-i18n="privacyNote">Deine Daten werden nur an ausgewählte Werkstätten weitergegeben.</span>
                 </div>
 
@@ -438,7 +507,7 @@
                 <div class="header-content">
                     <div class="header-left">
                         <button class="btn btn-icon btn-secondary btn-sm" onclick="App.navigateTo('home')">
-                            ←
+                            <svg class="icon icon-sm"><use href="#icon-arrow-left"></use></svg>
                         </button>
                     </div>
                     <div class="header-center">
@@ -456,11 +525,11 @@
 
                 <!-- Empty State -->
                 <div class="empty-state" id="requests-empty">
-                    <div class="empty-state-icon">📭</div>
+                    <div class="empty-state-icon"><svg class="icon icon-2xl"><use href="#icon-clipboard"></use></svg></div>
                     <h3 class="empty-state-title" data-i18n="noOffersYet">Noch keine Anfragen</h3>
                     <p class="empty-state-text">Starte jetzt deine erste Anfrage!</p>
                     <button class="btn btn-primary" onclick="App.navigateTo('photo')">
-                        <span>📸</span>
+                        <svg class="icon icon-md"><use href="#icon-camera"></use></svg>
                         <span data-i18n="startButton">Schaden melden</span>
                     </button>
                 </div>
@@ -473,7 +542,7 @@
                 <div class="header-content">
                     <div class="header-left">
                         <button class="btn btn-icon btn-secondary btn-sm" onclick="App.navigateTo('requests')">
-                            ←
+                            <svg class="icon icon-sm"><use href="#icon-arrow-left"></use></svg>
                         </button>
                     </div>
                     <div class="header-center">
@@ -509,7 +578,7 @@
                 <div class="header-content">
                     <div class="header-left">
                         <button class="btn btn-icon btn-secondary btn-sm" onclick="App.navigateTo('offers')">
-                            ←
+                            <svg class="icon icon-sm"><use href="#icon-arrow-left"></use></svg>
                         </button>
                     </div>
                     <div class="header-center">
@@ -542,7 +611,7 @@
         <div class="page hidden" id="page-success">
             <div class="main no-header no-footer success-page">
                 <div class="success-content">
-                    <div class="success-icon animate-success-pop">✅</div>
+                    <div class="success-icon"><svg class="icon icon-3xl"><use href="#icon-check-circle"></use></svg></div>
                     <h1 class="success-title animate-bounce-in" style="animation-delay: 0.3s;" data-i18n="successSent">
                         Anfrage erfolgreich gesendet!
                     </h1>
@@ -551,15 +620,15 @@
                     </p>
                     <div class="success-features animate-bounce-in" style="animation-delay: 0.7s;">
                         <div class="success-feature">
-                            <span>⏱️</span>
+                            <svg class="icon icon-md"><use href="#icon-clock"></use></svg>
                             <span>Meist innerhalb von 2 Stunden</span>
                         </div>
                         <div class="success-feature">
-                            <span>📱</span>
+                            <svg class="icon icon-md"><use href="#icon-smartphone"></use></svg>
                             <span>Push-Benachrichtigung erhalten</span>
                         </div>
                         <div class="success-feature">
-                            <span>💬</span>
+                            <svg class="icon icon-md"><use href="#icon-message"></use></svg>
                             <span>Direkt mit Werkstätten chatten</span>
                         </div>
                     </div>
@@ -574,7 +643,7 @@
         <div class="page hidden" id="page-login">
             <div class="main no-header no-footer login-hero">
                 <div class="text-center mb-xl animate-bounce-in" style="padding-top: var(--safe-top);">
-                    <div class="login-icon">📱</div>
+                    <div class="login-icon"><svg class="icon icon-xl"><use href="#icon-smartphone"></use></svg></div>
                     <h1 class="hero-title">Anmelden</h1>
                     <p class="hero-subtitle">Mit deiner Telefonnummer</p>
                 </div>
@@ -619,7 +688,7 @@
                     </div>
 
                     <button class="btn btn-primary btn-lg btn-block btn-glow" id="verify-code-btn" onclick="App.verifyCode()">
-                        <span>✓</span>
+                        <svg class="icon icon-sm"><use href="#icon-check"></use></svg>
                         <span>Bestätigen</span>
                     </button>
 
@@ -633,7 +702,7 @@
                 <!-- Tip -->
                 <div class="text-center mt-auto animate-bounce-in" style="padding: var(--space-lg) 0; animation-delay: 0.4s;">
                     <div class="tip-card" style="display: inline-flex;">
-                        <span class="tip-icon">🔒</span>
+                        <svg class="icon icon-md tip-icon"><use href="#icon-shield"></use></svg>
                         <span class="tip-text">Deine Nummer wird nur zur Verifizierung verwendet</span>
                     </div>
                 </div>
@@ -646,7 +715,7 @@
                 <div class="header-content">
                     <div class="header-left">
                         <button class="btn btn-icon btn-secondary btn-sm" onclick="App.navigateTo('home')">
-                            ←
+                            <svg class="icon icon-sm"><use href="#icon-arrow-left"></use></svg>
                         </button>
                     </div>
                     <div class="header-center">
@@ -660,7 +729,7 @@
                 <!-- User Info -->
                 <div class="card mb-lg" id="profile-info">
                     <div class="flex items-center gap-md mb-lg">
-                        <div class="profile-avatar">👤</div>
+                        <div class="profile-avatar"><svg class="icon icon-xl"><use href="#icon-user"></use></svg></div>
                         <div>
                             <p class="font-bold" id="profile-phone">+49 ...</p>
                             <p class="text-secondary text-sm">Verifiziert</p>
@@ -690,13 +759,13 @@
                     <div class="list-item" onclick="App.navigateTo('home')">
                         <span>🏠</span>
                         <span>Startseite</span>
-                        <span class="list-arrow">→</span>
+                        <svg class="icon icon-sm list-arrow"><use href="#icon-arrow-right"></use></svg>
                     </div>
 
                     <div class="list-item" onclick="App.navigateTo('requests')">
-                        <span>📋</span>
+                        <svg class="icon icon-md"><use href="#icon-clipboard"></use></svg>
                         <span>Meine Anfragen</span>
-                        <span class="list-arrow">→</span>
+                        <svg class="icon icon-sm list-arrow"><use href="#icon-arrow-right"></use></svg>
                     </div>
                 </div>
 
@@ -713,7 +782,7 @@
             <header class="header">
                 <div class="header-content">
                     <div class="header-left">
-                        <button class="btn btn-icon btn-secondary btn-sm" onclick="App.goBack()">←</button>
+                        <button class="btn btn-icon btn-secondary btn-sm" onclick="App.goBack()"><svg class="icon icon-sm"><use href="#icon-arrow-left"></use></svg></button>
                     </div>
                     <div class="header-center">
                         <span class="header-title">AGB</span>
@@ -787,7 +856,7 @@
             <header class="header">
                 <div class="header-content">
                     <div class="header-left">
-                        <button class="btn btn-icon btn-secondary btn-sm" onclick="App.goBack()">←</button>
+                        <button class="btn btn-icon btn-secondary btn-sm" onclick="App.goBack()"><svg class="icon icon-sm"><use href="#icon-arrow-left"></use></svg></button>
                     </div>
                     <div class="header-center">
                         <span class="header-title">Datenschutz</span>
@@ -892,7 +961,7 @@
             <header class="header">
                 <div class="header-content">
                     <div class="header-left">
-                        <button class="btn btn-icon btn-secondary btn-sm" onclick="App.goBack()">←</button>
+                        <button class="btn btn-icon btn-secondary btn-sm" onclick="App.goBack()"><svg class="icon icon-sm"><use href="#icon-arrow-left"></use></svg></button>
                     </div>
                     <div class="header-center">
                         <span class="header-title">Impressum</span>

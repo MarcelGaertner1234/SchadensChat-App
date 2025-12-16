@@ -141,7 +141,7 @@ const Workshop = {
      */
     showModal(options = {}) {
         const {
-            icon = '⚠️',
+            icon = '<svg class="icon icon-xl"><use href="#icon-alert"></use></svg>',
             title = 'Bestätigung',
             text = 'Möchten Sie fortfahren?',
             confirmText = 'Bestätigen',
@@ -160,7 +160,7 @@ const Workshop = {
 
         if (!overlay) return;
 
-        iconEl.textContent = icon;
+        iconEl.innerHTML = icon;
         titleEl.textContent = title;
         textEl.textContent = text;
         confirmBtn.textContent = confirmText;
@@ -1293,7 +1293,7 @@ const Workshop = {
      */
     declineRequest(requestId) {
         this.showModal({
-            icon: '🗑️',
+            icon: '<svg class="icon icon-xl"><use href="#icon-alert"></use></svg>',
             title: 'Anfrage ablehnen?',
             text: 'Diese Anfrage wird aus Ihrer Liste entfernt. Sie können kein Angebot mehr abgeben.',
             confirmText: 'Ablehnen',
@@ -1364,7 +1364,7 @@ const Workshop = {
             return `
                 <div class="list-item" onclick="Workshop.openChatForRequest('${req.id}')">
                     <div class="list-item-icon" style="background: var(--primary-light);">
-                        🚗
+                        <svg class="icon icon-lg"><use href="#icon-wrench"></use></svg>
                     </div>
                     <div class="list-item-content">
                         <div class="list-item-title">${req.customer.name}</div>
@@ -1493,7 +1493,7 @@ const Workshop = {
                     <div class="chat-message-content">${this.escapeHtml(msg.text)}</div>
                     <div class="chat-message-time">
                         ${time}
-                        ${msg.type === 'sent' ? '<span class="chat-message-status">✓✓</span>' : ''}
+                        ${msg.type === 'sent' ? '<span class="chat-message-status">✓</span>' : ''}
                     </div>
                 </div>
             `;
@@ -1784,7 +1784,7 @@ const Workshop = {
         const toast = document.createElement('div');
         toast.className = `toast ${type}`;
         toast.innerHTML = `
-            <span>${type === 'success' ? '✓' : type === 'error' ? '✕' : type === 'warning' ? '⚠' : 'ℹ'}</span>
+            <span class="toast-icon">${type === 'success' ? '✓' : type === 'error' ? '✕' : type === 'warning' ? '!' : 'i'}</span>
             <span>${message}</span>
         `;
 

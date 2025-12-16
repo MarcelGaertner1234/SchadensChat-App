@@ -103,7 +103,7 @@ const App = {
 
             // Update profile page
             if (userAvatar) {
-                userAvatar.textContent = user.phoneNumber ? '📱' : '👤';
+                userAvatar.innerHTML = '<svg class="icon icon-lg"><use href="#icon-user"></use></svg>';
             }
             if (userName) {
                 userName.textContent = user.displayName || 'Kunde';
@@ -153,7 +153,7 @@ const App = {
         } finally {
             if (btn) {
                 btn.disabled = false;
-                btn.innerHTML = '<span>📱</span> <span>Code senden</span>';
+                btn.innerHTML = '<svg class="icon icon-md"><use href="#icon-smartphone"></use></svg> <span>Code senden</span>';
             }
         }
     },
@@ -193,7 +193,7 @@ const App = {
         } finally {
             if (btn) {
                 btn.disabled = false;
-                btn.innerHTML = '<span>✓</span> <span>Bestätigen</span>';
+                btn.innerHTML = '<svg class="icon icon-sm"><use href="#icon-check"></use></svg> <span>Bestätigen</span>';
             }
         }
     },
@@ -257,12 +257,12 @@ const App = {
         if (!container) return;
 
         const types = [
-            { id: 'dent', icon: '👊' },
-            { id: 'scratch', icon: '✏️' },
-            { id: 'paint', icon: '🎨' },
-            { id: 'crack', icon: '💔' },
-            { id: 'rust', icon: '🟤' },
-            { id: 'other', icon: '❓' }
+            { id: 'dent', icon: '' },
+            { id: 'scratch', icon: '' },
+            { id: 'paint', icon: '' },
+            { id: 'crack', icon: '' },
+            { id: 'rust', icon: '' },
+            { id: 'other', icon: '' }
         ];
 
         container.innerHTML = `
@@ -410,7 +410,7 @@ const App = {
         if (this.photos.length < 5) {
             html += `
                 <div class="photo-item photo-add" onclick="App.capturePhoto()">
-                    <span class="photo-add-icon">📷</span>
+                    <svg class="icon icon-xl photo-add-icon"><use href="#icon-camera"></use></svg>
                     <span class="photo-add-text">+</span>
                 </div>
             `;
@@ -492,7 +492,7 @@ const App = {
                 }
 
                 btn.disabled = false;
-                btn.innerHTML = `<span>✅</span> <span>Standort gespeichert</span>`;
+                btn.innerHTML = `<svg class="icon icon-sm"><use href="#icon-check-circle"></use></svg> <span>Standort gespeichert</span>`;
 
                 if (nextBtn) nextBtn.disabled = false;
             },
@@ -893,7 +893,7 @@ const App = {
                 <div class="card mb-md" onclick="App.viewRequest('${req.id}')" style="cursor: pointer;">
                     <div class="flex gap-md">
                         <div style="width: 60px; height: 60px; border-radius: var(--radius-md); overflow: hidden; flex-shrink: 0;">
-                            <img src="${req.photos && req.photos[0] ? req.photos[0] : 'data:image/svg+xml,<svg xmlns=%22http://www.w3.org/2000/svg%22 viewBox=%220 0 60 60%22><rect fill=%22%23667eea%22 width=%2260%22 height=%2260%22/><text x=%2230%22 y=%2235%22 text-anchor=%22middle%22 fill=%22white%22 font-size=%2220%22>📷</text></svg>'}" style="width: 100%; height: 100%; object-fit: cover;">
+                            <img src="${req.photos && req.photos[0] ? req.photos[0] : 'data:image/svg+xml,<svg xmlns=%22http://www.w3.org/2000/svg%22 viewBox=%220 0 60 60%22><rect fill=%22%231e3a5f%22 width=%2260%22 height=%2260%22/><path d=%22M27 20h6l3 4h6v16H18V24h6l3-4z%22 stroke=%22white%22 fill=%22none%22 stroke-width=%222%22/><circle cx=%2230%22 cy=%2232%22 r=%224%22 stroke=%22white%22 fill=%22none%22 stroke-width=%222%22/></svg>'}" style="width: 100%; height: 100%; object-fit: cover;">
                         </div>
                         <div class="flex-1">
                             <div class="flex justify-between items-center mb-sm">
@@ -947,7 +947,7 @@ const App = {
             infoContainer.innerHTML = `
                 <div class="flex gap-md">
                     <div style="width: 80px; height: 80px; border-radius: var(--radius-md); overflow: hidden; flex-shrink: 0;">
-                        <img src="${request.photos && request.photos[0] ? request.photos[0] : 'data:image/svg+xml,<svg xmlns=%22http://www.w3.org/2000/svg%22 viewBox=%220 0 80 80%22><rect fill=%22%23667eea%22 width=%2280%22 height=%2280%22/><text x=%2240%22 y=%2248%22 text-anchor=%22middle%22 fill=%22white%22 font-size=%2224%22>📷</text></svg>'}" style="width: 100%; height: 100%; object-fit: cover;">
+                        <img src="${request.photos && request.photos[0] ? request.photos[0] : 'data:image/svg+xml,<svg xmlns=%22http://www.w3.org/2000/svg%22 viewBox=%220 0 80 80%22><rect fill=%22%231e3a5f%22 width=%2280%22 height=%2280%22/><path d=%22M35 25h10l4 5h10v22H21V30h10l4-5z%22 stroke=%22white%22 fill=%22none%22 stroke-width=%222%22/><circle cx=%2240%22 cy=%2242%22 r=%226%22 stroke=%22white%22 fill=%22none%22 stroke-width=%222%22/></svg>'}" style="width: 100%; height: 100%; object-fit: cover;">
                     </div>
                     <div>
                         <h3>${request.vehicle.brand || 'Fahrzeug'} ${request.vehicle.model || ''}</h3>
@@ -1000,7 +1000,7 @@ const App = {
         container.innerHTML = request.offers.map(offer => `
             <div class="offer-card">
                 <div class="offer-header">
-                    <div class="offer-logo">🔧</div>
+                    <div class="offer-logo"><svg class="icon icon-lg"><use href="#icon-wrench"></use></svg></div>
                     <div class="offer-info">
                         <div class="offer-name">${offer.workshopName}</div>
                         <div class="offer-rating">
@@ -1025,7 +1025,7 @@ const App = {
                 </div>
                 <div class="flex gap-sm">
                     <button class="btn btn-secondary flex-1" onclick="App.openChat('${offer.id}')">
-                        💬 Chat
+                        <svg class="icon icon-md"><use href="#icon-message"></use></svg> Chat
                     </button>
                     <button class="btn btn-primary flex-1" onclick="App.acceptOffer('${offer.id}')">
                         ${t('acceptOffer')}
@@ -1146,7 +1146,7 @@ const App = {
                     <div>${this.escapeHtml(msg.text)}</div>
                     <div class="chat-message-time">
                         ${time}
-                        ${msg.type === 'sent' ? '<span class="chat-message-status">✓✓</span>' : ''}
+                        ${msg.type === 'sent' ? '<span class="chat-message-status">✓</span>' : ''}
                     </div>
                 </div>
             `;
@@ -1236,7 +1236,7 @@ const App = {
         const toast = document.createElement('div');
         toast.className = `toast ${type}`;
         toast.innerHTML = `
-            <span>${type === 'success' ? '✓' : type === 'error' ? '✕' : type === 'warning' ? '⚠' : 'ℹ'}</span>
+            <span class="toast-icon">${type === 'success' ? '✓' : type === 'error' ? '✕' : type === 'warning' ? '!' : 'i'}</span>
             <span>${message}</span>
         `;
 

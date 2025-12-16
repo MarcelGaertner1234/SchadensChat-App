@@ -402,7 +402,7 @@ const SubscriptionManager = {
 
         overlay.innerHTML = `
             <div class="paywall-card">
-                <div class="paywall-icon">🔒</div>
+                <div class="paywall-icon"><svg class="icon icon-xl"><use href="#icon-shield"></use></svg></div>
                 <h2 class="paywall-title">Abo erforderlich</h2>
                 <p class="paywall-text">
                     Um Angebote abgeben zu können, benötigen Sie ein aktives Abonnement.
@@ -483,11 +483,11 @@ const SubscriptionManager = {
                     <div>
                         <h3 style="font-weight: 700; margin-bottom: 4px;">${plan.name || 'Kein Plan'}</h3>
                         <span class="subscription-badge ${isExpired ? 'expired' : ''}">
-                            ${subscription.status === 'trial' ? '🎁 Trial' :
-                              isExpired ? '⚠️ Abgelaufen' : '✓ Aktiv'}
+                            ${subscription.status === 'trial' ? 'Trial' :
+                              isExpired ? 'Abgelaufen' : '✓ Aktiv'}
                         </span>
                     </div>
-                    <div class="pricing-plan-icon" style="font-size: 36px;">${plan.icon || '📦'}</div>
+                    <div class="pricing-plan-icon" style="font-size: 24px;">${plan.icon || ''}</div>
                 </div>
                 <div class="subscription-status-info">
                     <div class="subscription-info-item">

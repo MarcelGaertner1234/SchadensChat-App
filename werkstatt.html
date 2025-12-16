@@ -5,7 +5,7 @@
     <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no, viewport-fit=cover">
     <meta name="apple-mobile-web-app-capable" content="yes">
     <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
-    <meta name="theme-color" content="#667eea">
+    <meta name="theme-color" content="#1e3a5f">
     <meta name="description" content="SchadensChat Werkstatt - Anfragen verwalten">
 
     <title>SchadensChat - Werkstatt</title>
@@ -273,6 +273,40 @@
     </style>
 </head>
 <body class="no-pull-refresh">
+    <!-- SVG Icon Definitions -->
+    <svg xmlns="http://www.w3.org/2000/svg" style="display: none;">
+        <symbol id="icon-wrench" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+            <path d="M14.7 6.3a1 1 0 0 0 0 1.4l1.6 1.6a1 1 0 0 0 1.4 0l3.77-3.77a6 6 0 0 1-7.94 7.94l-6.91 6.91a2.12 2.12 0 0 1-3-3l6.91-6.91a6 6 0 0 1 7.94-7.94l-3.76 3.76z"/>
+        </symbol>
+        <symbol id="icon-lightbulb" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+            <line x1="9" y1="18" x2="15" y2="18"/><line x1="10" y1="22" x2="14" y2="22"/><path d="M15.09 14c.18-.98.65-1.74 1.41-2.5A4.65 4.65 0 0 0 18 8 6 6 0 0 0 6 8c0 1 .23 2.23 1.5 3.5A4.61 4.61 0 0 1 8.91 14"/>
+        </symbol>
+        <symbol id="icon-settings" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+            <circle cx="12" cy="12" r="3"/><path d="M19.4 15a1.65 1.65 0 0 0 .33 1.82l.06.06a2 2 0 0 1 0 2.83 2 2 0 0 1-2.83 0l-.06-.06a1.65 1.65 0 0 0-1.82-.33 1.65 1.65 0 0 0-1 1.51V21a2 2 0 0 1-2 2 2 2 0 0 1-2-2v-.09A1.65 1.65 0 0 0 9 19.4a1.65 1.65 0 0 0-1.82.33l-.06.06a2 2 0 0 1-2.83 0 2 2 0 0 1 0-2.83l.06-.06a1.65 1.65 0 0 0 .33-1.82 1.65 1.65 0 0 0-1.51-1H3a2 2 0 0 1-2-2 2 2 0 0 1 2-2h.09A1.65 1.65 0 0 0 4.6 9a1.65 1.65 0 0 0-.33-1.82l-.06-.06a2 2 0 0 1 0-2.83 2 2 0 0 1 2.83 0l.06.06a1.65 1.65 0 0 0 1.82.33H9a1.65 1.65 0 0 0 1-1.51V3a2 2 0 0 1 2-2 2 2 0 0 1 2 2v.09a1.65 1.65 0 0 0 1 1.51 1.65 1.65 0 0 0 1.82-.33l.06-.06a2 2 0 0 1 2.83 0 2 2 0 0 1 0 2.83l-.06.06a1.65 1.65 0 0 0-.33 1.82V9a1.65 1.65 0 0 0 1.51 1H21a2 2 0 0 1 2 2 2 2 0 0 1-2 2h-.09a1.65 1.65 0 0 0-1.51 1z"/>
+        </symbol>
+        <symbol id="icon-message" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+            <path d="M21 15a2 2 0 0 1-2 2H7l-4 4V5a2 2 0 0 1 2-2h14a2 2 0 0 1 2 2z"/>
+        </symbol>
+        <symbol id="icon-check-circle" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+            <path d="M22 11.08V12a10 10 0 1 1-5.93-9.14"/><polyline points="22 4 12 14.01 9 11.01"/>
+        </symbol>
+        <symbol id="icon-clipboard" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+            <rect x="8" y="2" width="8" height="4" rx="1" ry="1"/><path d="M16 4h2a2 2 0 0 1 2 2v14a2 2 0 0 1-2 2H6a2 2 0 0 1-2-2V6a2 2 0 0 1 2-2h2"/>
+        </symbol>
+        <symbol id="icon-sun" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+            <circle cx="12" cy="12" r="5"/><line x1="12" y1="1" x2="12" y2="3"/><line x1="12" y1="21" x2="12" y2="23"/><line x1="4.22" y1="4.22" x2="5.64" y2="5.64"/><line x1="18.36" y1="18.36" x2="19.78" y2="19.78"/><line x1="1" y1="12" x2="3" y2="12"/><line x1="21" y1="12" x2="23" y2="12"/><line x1="4.22" y1="19.78" x2="5.64" y2="18.36"/><line x1="18.36" y1="5.64" x2="19.78" y2="4.22"/>
+        </symbol>
+        <symbol id="icon-moon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+            <path d="M21 12.79A9 9 0 1 1 11.21 3 7 7 0 0 0 21 12.79z"/>
+        </symbol>
+        <symbol id="icon-shield" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+            <path d="M12 22s8-4 8-10V5l-8-3-8 3v7c0 6 8 10 8 10z"/>
+        </symbol>
+        <symbol id="icon-alert" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+            <path d="M10.29 3.86L1.82 18a2 2 0 0 0 1.71 3h16.94a2 2 0 0 0 1.71-3L13.71 3.86a2 2 0 0 0-3.42 0z"/><line x1="12" y1="9" x2="12" y2="13"/><line x1="12" y1="17" x2="12.01" y2="17"/>
+        </symbol>
+    </svg>
+
     <div class="app" id="app">
 
         <!-- ========== WERKSTATT LOGIN ========== -->
@@ -280,7 +314,7 @@
             <div class="main no-header no-footer login-hero">
 
                 <div class="text-center mb-xl animate-bounce-in" style="padding-top: var(--safe-top);">
-                    <div class="login-icon">🔧</div>
+                    <div class="login-icon"><svg class="icon icon-xl"><use href="#icon-wrench"></use></svg></div>
                     <h1 class="hero-title">
                         <span data-i18n="appName">SchadensChat</span>
                     </h1>
@@ -380,7 +414,7 @@
                 <!-- Demo-Hinweis -->
                 <div class="text-center mt-auto animate-bounce-in" style="padding: var(--space-lg) 0; animation-delay: 0.4s;">
                     <div class="tip-card" style="display: inline-flex;">
-                        <span class="tip-icon">💡</span>
+                        <svg class="icon icon-md tip-icon"><use href="#icon-lightbulb"></use></svg>
                         <span class="tip-text">Oder Demo-Modus: Leer lassen zum Testen</span>
                     </div>
                 </div>
@@ -392,14 +426,14 @@
             <header class="header">
                 <div class="header-content">
                     <div class="header-left">
-                        <span style="font-size: 24px;">🔧</span>
+                        <svg class="icon icon-lg"><use href="#icon-wrench"></use></svg>
                     </div>
                     <div class="header-center">
                         <span id="workshop-name">Meine Werkstatt</span>
                     </div>
                     <div class="header-right">
                         <button class="btn btn-icon btn-secondary btn-sm" onclick="Workshop.showSettings()" aria-label="Einstellungen öffnen" title="Einstellungen">
-                            <span aria-hidden="true">⚙️</span>
+                            <svg class="icon icon-md" aria-hidden="true"><use href="#icon-settings"></use></svg>
                         </button>
                     </div>
                 </div>
@@ -475,12 +509,12 @@
                     <span class="tab-label">Dashboard</span>
                 </a>
                 <a class="tab-item" href="#" onclick="Workshop.navigateTo('chats'); return false;" role="tab" aria-selected="false" aria-label="Chats anzeigen">
-                    <span class="tab-icon" aria-hidden="true">💬</span>
+                    <svg class="icon icon-md tab-icon" aria-hidden="true"><use href="#icon-message"></use></svg>
                     <span class="tab-label">Chats</span>
                     <span class="tab-badge hidden" id="chat-badge" aria-label="Ungelesene Nachrichten">0</span>
                 </a>
                 <a class="tab-item" href="#" onclick="Workshop.navigateTo('settings'); return false;" role="tab" aria-selected="false" aria-label="Einstellungen">
-                    <span class="tab-icon" aria-hidden="true">⚙️</span>
+                    <svg class="icon icon-md tab-icon" aria-hidden="true"><use href="#icon-settings"></use></svg>
                     <span class="tab-label" data-i18n="settings">Einstellungen</span>
                 </a>
             </nav>
@@ -554,11 +588,11 @@
 
                 <!-- Bereits abgegeben -->
                 <div class="card hidden" id="offer-sent" style="text-align: center; background: rgba(52, 199, 89, 0.1);">
-                    <span style="font-size: 48px;">✅</span>
+                    <svg class="icon icon-3xl"><use href="#icon-check-circle"></use></svg>
                     <h3 style="margin: var(--space-md) 0;">Angebot gesendet!</h3>
                     <p class="text-secondary" id="offer-sent-details">350€ • 2 Tage</p>
                     <button class="btn btn-secondary mt-auto" onclick="Workshop.openChat()">
-                        💬 Chat öffnen
+                        <svg class="icon icon-md"><use href="#icon-message"></use></svg> Chat öffnen
                     </button>
                 </div>
             </main>
@@ -570,7 +604,7 @@
                 <div class="header-content">
                     <div class="header-left"></div>
                     <div class="header-center">
-                        💬 Chats
+                        <svg class="icon icon-md"><use href="#icon-message"></use></svg> Chats
                     </div>
                     <div class="header-right"></div>
                 </div>
@@ -582,7 +616,7 @@
                 </div>
 
                 <div class="empty-state" id="chats-empty">
-                    <div class="empty-state-icon">💬</div>
+                    <div class="empty-state-icon"><svg class="icon icon-2xl"><use href="#icon-message"></use></svg></div>
                     <h3 class="empty-state-title">Keine Chats</h3>
                     <p class="empty-state-text">Chats mit Kunden erscheinen hier.</p>
                 </div>
@@ -595,11 +629,11 @@
                     <span class="tab-label">Dashboard</span>
                 </a>
                 <a class="tab-item active" href="#" onclick="Workshop.navigateTo('chats'); return false;">
-                    <span class="tab-icon">💬</span>
+                    <svg class="icon icon-md tab-icon"><use href="#icon-message"></use></svg>
                     <span class="tab-label">Chats</span>
                 </a>
                 <a class="tab-item" href="#" onclick="Workshop.navigateTo('settings'); return false;">
-                    <span class="tab-icon">⚙️</span>
+                    <svg class="icon icon-md tab-icon"><use href="#icon-settings"></use></svg>
                     <span class="tab-label" data-i18n="settings">Einstellungen</span>
                 </a>
             </nav>
@@ -620,7 +654,7 @@
                     </div>
                     <div class="header-right">
                         <button class="btn btn-icon btn-secondary btn-sm" onclick="Workshop.showRequestFromChat()">
-                            📋
+                            <svg class="icon icon-md"><use href="#icon-clipboard"></use></svg>
                         </button>
                     </div>
                 </div>
@@ -663,8 +697,8 @@
                         </div>
                         <div class="theme-toggle-container" style="margin: 0;">
                             <button class="theme-toggle-btn" onclick="Workshop.toggleTheme()" aria-label="Theme wechseln">
-                                <span class="theme-icon theme-icon-light">☀️</span>
-                                <span class="theme-icon theme-icon-dark">🌙</span>
+                                <svg class="icon theme-icon theme-icon-light"><use href="#icon-sun"></use></svg>
+                                <svg class="icon theme-icon theme-icon-dark"><use href="#icon-moon"></use></svg>
                                 <span class="theme-toggle-slider"></span>
                             </button>
                         </div>
@@ -752,7 +786,7 @@
                             <span class="list-item-chevron">›</span>
                         </a>
                         <a href="#" class="list-item" onclick="Workshop.navigateTo('datenschutz'); return false;">
-                            <span class="list-item-icon" style="background: var(--bg-tertiary); color: var(--text-primary);">🔒</span>
+                            <svg class="icon icon-md list-item-icon" style="background: var(--bg-tertiary); color: var(--text-primary);"><use href="#icon-shield"></use></svg>
                             <div class="list-item-content">
                                 <div class="list-item-title">Datenschutz</div>
                                 <div class="list-item-subtitle">Datenschutzerklärung</div>
@@ -788,11 +822,11 @@
                     <span class="tab-label">Dashboard</span>
                 </a>
                 <a class="tab-item" href="#" onclick="Workshop.navigateTo('chats'); return false;">
-                    <span class="tab-icon">💬</span>
+                    <svg class="icon icon-md tab-icon"><use href="#icon-message"></use></svg>
                     <span class="tab-label">Chats</span>
                 </a>
                 <a class="tab-item active" href="#" onclick="Workshop.navigateTo('settings'); return false;">
-                    <span class="tab-icon">⚙️</span>
+                    <svg class="icon icon-md tab-icon"><use href="#icon-settings"></use></svg>
                     <span class="tab-label" data-i18n="settings">Einstellungen</span>
                 </a>
             </nav>
@@ -1123,7 +1157,7 @@
     <!-- Custom Modal Dialog -->
     <div class="modal-overlay hidden" id="modal-overlay">
         <div class="modal-card" id="modal-card">
-            <div class="modal-icon" id="modal-icon">⚠️</div>
+            <div class="modal-icon" id="modal-icon"><svg class="icon icon-xl"><use href="#icon-alert"></use></svg></div>
             <h3 class="modal-title" id="modal-title">Titel</h3>
             <p class="modal-text" id="modal-text">Beschreibung</p>
             <div class="modal-actions" id="modal-actions">

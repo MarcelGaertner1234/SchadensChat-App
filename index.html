@@ -1,0 +1,996 @@
+<!DOCTYPE html>
+<html lang="de">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no, viewport-fit=cover">
+    <meta name="apple-mobile-web-app-capable" content="yes">
+    <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
+    <meta name="theme-color" content="#667eea">
+    <meta name="description" content="SchadensChat - Foto machen, Angebote erhalten!">
+
+    <title>SchadensChat</title>
+
+    <!-- PWA Manifest -->
+    <link rel="manifest" href="manifest.json">
+    <link rel="apple-touch-icon" href="img/icon-192.png">
+
+    <!-- CSS -->
+    <link rel="stylesheet" href="css/mobile.css">
+
+    <!-- Prevent FOUC -->
+    <script>
+        (function() {
+            const theme = localStorage.getItem('schadens-chat-theme') || 'light';
+            document.documentElement.setAttribute('data-theme', theme);
+        })();
+    </script>
+</head>
+<body class="no-pull-refresh">
+    <div class="app" id="app">
+
+        <!-- ========== STARTSEITE ========== -->
+        <div class="page" id="page-home">
+            <div class="main no-header hero-section">
+
+                <!-- Hero Background Animation -->
+                <div class="hero-bg"></div>
+
+                <!-- Logo & Branding -->
+                <div class="text-center mb-lg" style="padding-top: calc(var(--safe-top) + 60px); position: relative; z-index: 1;">
+                    <div class="hero-icon animate-float">🚗</div>
+                    <h1 class="hero-title animate-bounce-in">
+                        <span data-i18n="appName">SchadensChat</span>
+                    </h1>
+                    <p class="hero-subtitle" data-i18n="appSlogan">
+                        Schnell. Einfach. Günstig.
+                    </p>
+                </div>
+
+                <!-- Hauptaktion -->
+                <div style="padding: 0 var(--space-lg); position: relative; z-index: 1;">
+                    <div class="card card-premium animate-bounce-in" style="animation-delay: 0.2s; padding: var(--space-xl); text-align: center; margin-bottom: var(--space-lg);">
+                        <h2 style="font-size: var(--font-size-2xl); margin-bottom: var(--space-sm); font-weight: 700;" data-i18n="welcomeTitle">
+                            Fahrzeugschaden?
+                        </h2>
+                        <p style="color: var(--text-secondary); margin-bottom: var(--space-lg);" data-i18n="welcomeSubtitle">
+                            Foto machen, Angebote erhalten!
+                        </p>
+
+                        <button class="btn btn-primary btn-lg btn-block btn-glow" onclick="App.navigateTo('photo')">
+                            <span style="font-size: 24px;">📸</span>
+                            <span data-i18n="startButton">Schaden melden</span>
+                        </button>
+                    </div>
+
+                    <!-- Meine Anfragen -->
+                    <button class="btn btn-glass btn-block animate-bounce-in" style="animation-delay: 0.4s;" onclick="App.navigateTo('requests')">
+                        <span style="font-size: 20px;">📋</span>
+                        <span data-i18n="myRequests">Meine Anfragen</span>
+                    </button>
+
+                    <!-- Login/Profile Buttons -->
+                    <div class="animate-bounce-in" style="animation-delay: 0.45s; margin-top: var(--space-md);">
+                        <!-- Login Button (visible when not logged in) -->
+                        <button id="nav-login-btn" class="btn btn-glass btn-block" onclick="App.navigateTo('login')">
+                            <span style="font-size: 20px;">🔐</span>
+                            <span>Anmelden</span>
+                        </button>
+                        <!-- Profile Button (hidden, visible when logged in) -->
+                        <button id="nav-profile-btn" class="btn btn-glass btn-block hidden" onclick="App.navigateTo('profile')">
+                            <span style="font-size: 20px;">👤</span>
+                            <span>Mein Profil</span>
+                        </button>
+                    </div>
+
+                    <!-- Feature Highlights -->
+                    <div class="feature-grid animate-bounce-in" style="animation-delay: 0.5s; margin-top: var(--space-xl);">
+                        <div class="feature-item">
+                            <span class="feature-icon">⚡</span>
+                            <span class="feature-text">Schnelle Antwort</span>
+                        </div>
+                        <div class="feature-item">
+                            <span class="feature-icon">💰</span>
+                            <span class="feature-text">Beste Preise</span>
+                        </div>
+                        <div class="feature-item">
+                            <span class="feature-icon">🔒</span>
+                            <span class="feature-text">100% Sicher</span>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- Theme Toggle & Sprachauswahl -->
+                <div style="margin-top: auto; padding: var(--space-lg); padding-bottom: calc(var(--space-lg) + var(--safe-bottom)); position: relative; z-index: 1;">
+                    <!-- Theme Toggle -->
+                    <div class="theme-toggle-container text-center mb-lg">
+                        <button class="theme-toggle-btn" onclick="App.toggleTheme()" aria-label="Theme wechseln">
+                            <span class="theme-icon theme-icon-light">☀️</span>
+                            <span class="theme-icon theme-icon-dark">🌙</span>
+                            <span class="theme-toggle-slider"></span>
+                        </button>
+                    </div>
+
+                    <div class="text-center mb-md">
+                        <span style="font-size: var(--font-size-sm); color: var(--text-secondary);" data-i18n="language">Sprache</span>
+                    </div>
+                    <div class="language-selector" style="justify-content: center;" id="language-selector">
+                        <!-- Wird dynamisch gefüllt -->
+                    </div>
+
+                    <!-- Legal Footer -->
+                    <div class="legal-footer">
+                        <div class="legal-links">
+                            <a href="#" onclick="App.navigateTo('agb'); return false;">AGB</a>
+                            <span class="legal-divider">•</span>
+                            <a href="#" onclick="App.navigateTo('datenschutz'); return false;">Datenschutz</a>
+                            <span class="legal-divider">•</span>
+                            <a href="#" onclick="App.navigateTo('impressum'); return false;">Impressum</a>
+                        </div>
+                        <p class="legal-copyright">© 2024 SchadensChat. Alle Rechte vorbehalten.</p>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <!-- ========== FOTO-UPLOAD ========== -->
+        <div class="page hidden" id="page-photo">
+            <header class="header">
+                <div class="header-content">
+                    <div class="header-left">
+                        <button class="btn btn-icon btn-secondary btn-sm" onclick="App.navigateTo('home')">
+                            ←
+                        </button>
+                    </div>
+                    <div class="header-center">
+                        <span data-i18n="photoTitle">Schaden fotografieren</span>
+                    </div>
+                    <div class="header-right"></div>
+                </div>
+            </header>
+
+            <main class="main no-footer">
+                <!-- Progress -->
+                <div class="progress-steps mb-lg">
+                    <div class="progress-step active"></div>
+                    <div class="progress-step"></div>
+                    <div class="progress-step"></div>
+                    <div class="progress-step"></div>
+                </div>
+
+                <p class="text-center text-secondary mb-lg" data-i18n="photoSubtitle">
+                    Mach 1-5 Fotos vom Schaden
+                </p>
+
+                <!-- Foto-Grid -->
+                <div class="photo-grid mb-lg" id="photo-grid">
+                    <div class="photo-item photo-add" onclick="App.capturePhoto()">
+                        <span class="photo-add-icon">📷</span>
+                        <span class="photo-add-text" data-i18n="takePhoto">Foto aufnehmen</span>
+                    </div>
+                </div>
+
+                <!-- Hidden File Input -->
+                <input type="file" id="photo-input" accept="image/*" capture="environment" multiple style="display: none;">
+                <input type="file" id="gallery-input" accept="image/*" multiple style="display: none;">
+
+                <!-- Buttons -->
+                <div class="flex gap-sm mb-lg">
+                    <button class="btn btn-secondary flex-1" onclick="App.openGallery()">
+                        <span>🖼️</span>
+                        <span data-i18n="choosePhoto">Aus Galerie</span>
+                    </button>
+                </div>
+
+                <!-- Tipp -->
+                <div class="tip-card">
+                    <span class="tip-icon">💡</span>
+                    <span class="tip-text" data-i18n="photoTip">Tipp: Fotografiere aus verschiedenen Winkeln</span>
+                </div>
+
+                <!-- Foto-Counter -->
+                <div class="text-center mt-auto" style="padding: var(--space-lg) 0;">
+                    <p class="text-secondary" id="photo-counter" style="display: none;">
+                        <span data-i18n="photosSelected">{count} Foto(s) ausgewählt</span>
+                    </p>
+                </div>
+
+                <!-- Weiter-Button -->
+                <button class="btn btn-primary btn-lg btn-block" id="photo-next-btn" onclick="App.navigateTo('describe')" disabled>
+                    <span data-i18n="next">Weiter</span>
+                    <span>→</span>
+                </button>
+            </main>
+        </div>
+
+        <!-- ========== SCHADENSBESCHREIBUNG ========== -->
+        <div class="page hidden" id="page-describe">
+            <header class="header">
+                <div class="header-content">
+                    <div class="header-left">
+                        <button class="btn btn-icon btn-secondary btn-sm" onclick="App.navigateTo('photo')">
+                            ←
+                        </button>
+                    </div>
+                    <div class="header-center">
+                        <span data-i18n="describeTitle">Schaden beschreiben</span>
+                    </div>
+                    <div class="header-right"></div>
+                </div>
+            </header>
+
+            <main class="main no-footer">
+                <!-- Progress -->
+                <div class="progress-steps mb-lg">
+                    <div class="progress-step completed"></div>
+                    <div class="progress-step active"></div>
+                    <div class="progress-step"></div>
+                    <div class="progress-step"></div>
+                </div>
+
+                <!-- Schadensart -->
+                <div class="input-group">
+                    <label class="input-label" data-i18n="damageType">Art des Schadens</label>
+                    <div class="damage-types" id="damage-types">
+                        <!-- Wird dynamisch gefüllt -->
+                    </div>
+                </div>
+
+                <!-- Schadensposition -->
+                <div class="input-group">
+                    <label class="input-label" data-i18n="damageLocation">Wo ist der Schaden?</label>
+                    <select class="input select" id="damage-location">
+                        <option value="">-- Auswählen --</option>
+                    </select>
+                </div>
+
+                <!-- Zusätzliche Infos -->
+                <div class="input-group">
+                    <label class="input-label" data-i18n="additionalInfo">Zusätzliche Infos (optional)</label>
+                    <textarea class="input" id="damage-description" rows="3" data-i18n-placeholder="additionalPlaceholder"></textarea>
+                </div>
+
+                <!-- Fahrzeugdaten -->
+                <h3 class="mb-md" style="margin-top: var(--space-lg);" data-i18n="vehicleTitle">Fahrzeugdaten</h3>
+
+                <div class="input-group">
+                    <label class="input-label" data-i18n="licensePlate">Kennzeichen</label>
+                    <input type="text" class="input" id="vehicle-plate" data-i18n-placeholder="licensePlaceholder" style="text-transform: uppercase;">
+                </div>
+
+                <div class="flex gap-sm">
+                    <div class="input-group flex-1">
+                        <label class="input-label" data-i18n="vehicleBrand">Marke</label>
+                        <input type="text" class="input" id="vehicle-brand" placeholder="z.B. BMW">
+                    </div>
+                    <div class="input-group flex-1">
+                        <label class="input-label" data-i18n="vehicleModel">Modell</label>
+                        <input type="text" class="input" id="vehicle-model" placeholder="z.B. X5">
+                    </div>
+                </div>
+
+                <div class="flex gap-sm">
+                    <div class="input-group flex-1">
+                        <label class="input-label" data-i18n="vehicleYear">Baujahr</label>
+                        <input type="number" class="input" id="vehicle-year" placeholder="2020" min="1990" max="2030">
+                    </div>
+                    <div class="input-group flex-1">
+                        <label class="input-label" data-i18n="vehicleColor">Farbe</label>
+                        <input type="text" class="input" id="vehicle-color" placeholder="z.B. Schwarz">
+                    </div>
+                </div>
+
+                <div style="height: var(--space-lg);"></div>
+
+                <!-- Weiter-Button -->
+                <button class="btn btn-primary btn-lg btn-block" onclick="App.navigateTo('location')">
+                    <span data-i18n="next">Weiter</span>
+                    <span>→</span>
+                </button>
+            </main>
+        </div>
+
+        <!-- ========== STANDORT ========== -->
+        <div class="page hidden" id="page-location">
+            <header class="header">
+                <div class="header-content">
+                    <div class="header-left">
+                        <button class="btn btn-icon btn-secondary btn-sm" onclick="App.navigateTo('describe')">
+                            ←
+                        </button>
+                    </div>
+                    <div class="header-center">
+                        <span data-i18n="locationTitle">Dein Standort</span>
+                    </div>
+                    <div class="header-right"></div>
+                </div>
+            </header>
+
+            <main class="main no-footer">
+                <!-- Progress -->
+                <div class="progress-steps mb-lg">
+                    <div class="progress-step completed"></div>
+                    <div class="progress-step completed"></div>
+                    <div class="progress-step active"></div>
+                    <div class="progress-step"></div>
+                </div>
+
+                <p class="text-center text-secondary mb-lg" data-i18n="locationSubtitle">
+                    Werkstätten in deiner Nähe finden
+                </p>
+
+                <!-- GPS Button -->
+                <button class="btn btn-primary btn-lg btn-block mb-lg" id="gps-btn" onclick="App.requestLocation()">
+                    <span>📍</span>
+                    <span data-i18n="useGPS">Meinen Standort verwenden</span>
+                </button>
+
+                <!-- Standort-Anzeige -->
+                <div class="card mb-lg hidden" id="location-display">
+                    <div class="flex items-center gap-md">
+                        <span style="font-size: 32px;">📍</span>
+                        <div>
+                            <p class="font-bold" id="location-address">--</p>
+                            <p class="text-secondary" id="location-coords" style="font-size: var(--font-size-sm);">--</p>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- Oder PLZ -->
+                <div class="text-center mb-md">
+                    <span class="text-secondary" data-i18n="enterZip">Oder PLZ eingeben</span>
+                </div>
+
+                <div class="input-group">
+                    <input type="text" class="input" id="zip-code" data-i18n-placeholder="zipPlaceholder" inputmode="numeric" pattern="[0-9]*" maxlength="5">
+                </div>
+
+                <!-- Suchradius -->
+                <div class="input-group">
+                    <label class="input-label" data-i18n="searchRadius">Suchradius</label>
+                    <div class="flex items-center gap-md">
+                        <input type="range" id="search-radius" min="5" max="50" value="25" style="flex: 1;">
+                        <span id="radius-value" style="min-width: 60px; text-align: right;">25 km</span>
+                    </div>
+                </div>
+
+                <div style="height: var(--space-lg);"></div>
+
+                <!-- Weiter-Button -->
+                <button class="btn btn-primary btn-lg btn-block" id="location-next-btn" onclick="App.navigateTo('contact')" disabled>
+                    <span data-i18n="next">Weiter</span>
+                    <span>→</span>
+                </button>
+            </main>
+        </div>
+
+        <!-- ========== KONTAKT & ABSENDEN ========== -->
+        <div class="page hidden" id="page-contact">
+            <header class="header">
+                <div class="header-content">
+                    <div class="header-left">
+                        <button class="btn btn-icon btn-secondary btn-sm" onclick="App.navigateTo('location')">
+                            ←
+                        </button>
+                    </div>
+                    <div class="header-center">
+                        <span data-i18n="submitTitle">Anfrage absenden</span>
+                    </div>
+                    <div class="header-right"></div>
+                </div>
+            </header>
+
+            <main class="main no-footer">
+                <!-- Progress -->
+                <div class="progress-steps mb-lg">
+                    <div class="progress-step completed"></div>
+                    <div class="progress-step completed"></div>
+                    <div class="progress-step completed"></div>
+                    <div class="progress-step active"></div>
+                </div>
+
+                <p class="text-center text-secondary mb-lg" data-i18n="submitSubtitle">
+                    Deine Anfrage wird an Werkstätten gesendet
+                </p>
+
+                <!-- Kontaktdaten -->
+                <h3 class="mb-md" data-i18n="contactInfo">Kontaktdaten</h3>
+
+                <div class="input-group">
+                    <label class="input-label" data-i18n="yourName">Dein Name</label>
+                    <input type="text" class="input" id="contact-name" required>
+                </div>
+
+                <div class="input-group">
+                    <label class="input-label" data-i18n="yourPhone">Telefonnummer</label>
+                    <input type="tel" class="input" id="contact-phone" inputmode="tel" required>
+                </div>
+
+                <div class="input-group">
+                    <label class="input-label" data-i18n="yourEmail">E-Mail (optional)</label>
+                    <input type="email" class="input" id="contact-email" inputmode="email">
+                </div>
+
+                <!-- Datenschutz-Hinweis -->
+                <div class="tip-card" style="margin-bottom: var(--space-lg);">
+                    <span class="tip-icon">🔒</span>
+                    <span class="tip-text" data-i18n="privacyNote">Deine Daten werden nur an ausgewählte Werkstätten weitergegeben.</span>
+                </div>
+
+                <!-- Zusammenfassung -->
+                <div class="card mb-lg" id="request-summary">
+                    <h4 class="mb-md">Zusammenfassung</h4>
+                    <div id="summary-content">
+                        <!-- Wird dynamisch gefüllt -->
+                    </div>
+                </div>
+
+                <!-- Absenden-Button -->
+                <button class="btn btn-primary btn-lg btn-block" id="submit-btn" onclick="App.submitRequest()">
+                    <span>📤</span>
+                    <span data-i18n="submitRequest">Anfrage senden</span>
+                </button>
+            </main>
+        </div>
+
+        <!-- ========== MEINE ANFRAGEN ========== -->
+        <div class="page hidden" id="page-requests">
+            <header class="header">
+                <div class="header-content">
+                    <div class="header-left">
+                        <button class="btn btn-icon btn-secondary btn-sm" onclick="App.navigateTo('home')">
+                            ←
+                        </button>
+                    </div>
+                    <div class="header-center">
+                        <span data-i18n="myRequests">Meine Anfragen</span>
+                    </div>
+                    <div class="header-right"></div>
+                </div>
+            </header>
+
+            <main class="main no-footer">
+                <!-- Anfragen-Liste -->
+                <div id="requests-list">
+                    <!-- Wird dynamisch gefüllt -->
+                </div>
+
+                <!-- Empty State -->
+                <div class="empty-state" id="requests-empty">
+                    <div class="empty-state-icon">📭</div>
+                    <h3 class="empty-state-title" data-i18n="noOffersYet">Noch keine Anfragen</h3>
+                    <p class="empty-state-text">Starte jetzt deine erste Anfrage!</p>
+                    <button class="btn btn-primary" onclick="App.navigateTo('photo')">
+                        <span>📸</span>
+                        <span data-i18n="startButton">Schaden melden</span>
+                    </button>
+                </div>
+            </main>
+        </div>
+
+        <!-- ========== ANGEBOTE ========== -->
+        <div class="page hidden" id="page-offers">
+            <header class="header">
+                <div class="header-content">
+                    <div class="header-left">
+                        <button class="btn btn-icon btn-secondary btn-sm" onclick="App.navigateTo('requests')">
+                            ←
+                        </button>
+                    </div>
+                    <div class="header-center">
+                        <span data-i18n="offersTitle">Angebote</span>
+                    </div>
+                    <div class="header-right"></div>
+                </div>
+            </header>
+
+            <main class="main no-footer">
+                <!-- Anfrage-Info -->
+                <div class="card mb-lg" id="offer-request-info">
+                    <!-- Wird dynamisch gefüllt -->
+                </div>
+
+                <!-- Angebote-Liste -->
+                <div id="offers-list">
+                    <!-- Wird dynamisch gefüllt -->
+                </div>
+
+                <!-- Warte-Status -->
+                <div class="empty-state" id="offers-waiting">
+                    <div class="spinner" style="margin-bottom: var(--space-lg);"></div>
+                    <h3 class="empty-state-title" data-i18n="waitingForOffers">Werkstätten prüfen deine Anfrage...</h3>
+                    <p class="empty-state-text">Du wirst benachrichtigt, sobald Angebote eingehen.</p>
+                </div>
+            </main>
+        </div>
+
+        <!-- ========== CHAT ========== -->
+        <div class="page hidden" id="page-chat">
+            <header class="header">
+                <div class="header-content">
+                    <div class="header-left">
+                        <button class="btn btn-icon btn-secondary btn-sm" onclick="App.navigateTo('offers')">
+                            ←
+                        </button>
+                    </div>
+                    <div class="header-center">
+                        <div class="header-title" id="chat-workshop-name">Werkstatt</div>
+                        <div class="header-subtitle" id="chat-status">
+                            <span class="text-success" data-i18n="online">Online</span>
+                        </div>
+                    </div>
+                    <div class="header-right"></div>
+                </div>
+            </header>
+
+            <main class="main chat-view no-footer">
+                <!-- Chat-Nachrichten -->
+                <div class="chat-messages" id="chat-messages">
+                    <!-- Wird dynamisch gefüllt -->
+                </div>
+
+                <!-- Chat-Eingabe -->
+                <div class="chat-input-container">
+                    <textarea class="chat-input" id="chat-input" rows="1" data-i18n-placeholder="typeMessage" placeholder="Nachricht schreiben..."></textarea>
+                    <button class="chat-send-btn" id="chat-send-btn" onclick="App.sendMessage()" disabled>
+                        <span>➤</span>
+                    </button>
+                </div>
+            </main>
+        </div>
+
+        <!-- ========== ERFOLGS-SEITE ========== -->
+        <div class="page hidden" id="page-success">
+            <div class="main no-header no-footer success-page">
+                <div class="success-content">
+                    <div class="success-icon animate-success-pop">✅</div>
+                    <h1 class="success-title animate-bounce-in" style="animation-delay: 0.3s;" data-i18n="successSent">
+                        Anfrage erfolgreich gesendet!
+                    </h1>
+                    <p class="success-subtitle animate-bounce-in" style="animation-delay: 0.5s;">
+                        Du erhältst eine Benachrichtigung, sobald Werkstätten Angebote abgeben.
+                    </p>
+                    <div class="success-features animate-bounce-in" style="animation-delay: 0.7s;">
+                        <div class="success-feature">
+                            <span>⏱️</span>
+                            <span>Meist innerhalb von 2 Stunden</span>
+                        </div>
+                        <div class="success-feature">
+                            <span>📱</span>
+                            <span>Push-Benachrichtigung erhalten</span>
+                        </div>
+                        <div class="success-feature">
+                            <span>💬</span>
+                            <span>Direkt mit Werkstätten chatten</span>
+                        </div>
+                    </div>
+                    <button class="btn btn-primary btn-lg btn-glow animate-bounce-in" style="animation-delay: 0.9s;" onclick="App.navigateTo('requests')">
+                        <span data-i18n="myRequests">Meine Anfragen</span>
+                    </button>
+                </div>
+            </div>
+        </div>
+
+        <!-- ========== LOGIN (TELEFON) ========== -->
+        <div class="page hidden" id="page-login">
+            <div class="main no-header no-footer login-hero">
+                <div class="text-center mb-xl animate-bounce-in" style="padding-top: var(--safe-top);">
+                    <div class="login-icon">📱</div>
+                    <h1 class="hero-title">Anmelden</h1>
+                    <p class="hero-subtitle">Mit deiner Telefonnummer</p>
+                </div>
+
+                <!-- Step 1: Phone Number -->
+                <div class="login-card animate-bounce-in" id="login-step-phone" style="animation-delay: 0.2s;">
+                    <div class="input-group">
+                        <label class="input-label">Telefonnummer</label>
+                        <div class="phone-input-group">
+                            <span class="phone-prefix">+49</span>
+                            <input type="tel" class="input" id="login-phone"
+                                   placeholder="171 1234567" inputmode="tel"
+                                   style="padding-left: 60px;">
+                        </div>
+                    </div>
+
+                    <button class="btn btn-primary btn-lg btn-block btn-glow" id="send-code-btn" onclick="App.sendVerificationCode()">
+                        <span>📲</span>
+                        <span>Code senden</span>
+                    </button>
+
+                    <div class="text-center mt-lg">
+                        <button class="btn btn-link" onclick="App.navigateTo('home')">
+                            Zurück
+                        </button>
+                    </div>
+                </div>
+
+                <!-- Step 2: Verification Code -->
+                <div class="login-card hidden" id="login-step-code">
+                    <div class="text-center mb-lg">
+                        <p class="text-secondary">Code gesendet an</p>
+                        <p class="font-bold" id="login-phone-display">+49 ...</p>
+                    </div>
+
+                    <div class="input-group">
+                        <label class="input-label">Verifizierungscode</label>
+                        <input type="text" class="input code-input" id="login-code"
+                               placeholder="123456" inputmode="numeric"
+                               maxlength="6" autocomplete="one-time-code"
+                               style="text-align: center; font-size: 24px; letter-spacing: 8px;">
+                    </div>
+
+                    <button class="btn btn-primary btn-lg btn-block btn-glow" id="verify-code-btn" onclick="App.verifyCode()">
+                        <span>✓</span>
+                        <span>Bestätigen</span>
+                    </button>
+
+                    <div class="text-center mt-lg">
+                        <button class="btn btn-link" onclick="App.resendCode()">
+                            Code erneut senden
+                        </button>
+                    </div>
+                </div>
+
+                <!-- Tip -->
+                <div class="text-center mt-auto animate-bounce-in" style="padding: var(--space-lg) 0; animation-delay: 0.4s;">
+                    <div class="tip-card" style="display: inline-flex;">
+                        <span class="tip-icon">🔒</span>
+                        <span class="tip-text">Deine Nummer wird nur zur Verifizierung verwendet</span>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <!-- ========== PROFIL ========== -->
+        <div class="page hidden" id="page-profile">
+            <header class="header">
+                <div class="header-content">
+                    <div class="header-left">
+                        <button class="btn btn-icon btn-secondary btn-sm" onclick="App.navigateTo('home')">
+                            ←
+                        </button>
+                    </div>
+                    <div class="header-center">
+                        <span>Mein Profil</span>
+                    </div>
+                    <div class="header-right"></div>
+                </div>
+            </header>
+
+            <main class="main no-footer">
+                <!-- User Info -->
+                <div class="card mb-lg" id="profile-info">
+                    <div class="flex items-center gap-md mb-lg">
+                        <div class="profile-avatar">👤</div>
+                        <div>
+                            <p class="font-bold" id="profile-phone">+49 ...</p>
+                            <p class="text-secondary text-sm">Verifiziert</p>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- Stats -->
+                <div class="card mb-lg">
+                    <h3 class="mb-md">Statistik</h3>
+                    <div class="stats-row">
+                        <div class="stat-item">
+                            <span class="stat-value" id="profile-requests">0</span>
+                            <span class="stat-label">Anfragen</span>
+                        </div>
+                        <div class="stat-item">
+                            <span class="stat-value" id="profile-offers">0</span>
+                            <span class="stat-label">Angebote</span>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- Settings -->
+                <div class="card mb-lg">
+                    <h3 class="mb-md">Einstellungen</h3>
+
+                    <div class="list-item" onclick="App.navigateTo('home')">
+                        <span>🏠</span>
+                        <span>Startseite</span>
+                        <span class="list-arrow">→</span>
+                    </div>
+
+                    <div class="list-item" onclick="App.navigateTo('requests')">
+                        <span>📋</span>
+                        <span>Meine Anfragen</span>
+                        <span class="list-arrow">→</span>
+                    </div>
+                </div>
+
+                <!-- Logout -->
+                <button class="btn btn-danger btn-block" onclick="App.logout()">
+                    <span>🚪</span>
+                    <span>Abmelden</span>
+                </button>
+            </main>
+        </div>
+
+        <!-- ========== AGB ========== -->
+        <div class="page hidden" id="page-agb">
+            <header class="header">
+                <div class="header-content">
+                    <div class="header-left">
+                        <button class="btn btn-icon btn-secondary btn-sm" onclick="App.goBack()">←</button>
+                    </div>
+                    <div class="header-center">
+                        <span class="header-title">AGB</span>
+                    </div>
+                    <div class="header-right"></div>
+                </div>
+            </header>
+
+            <main class="main no-footer legal-page">
+                <h1>Allgemeine Geschäftsbedingungen</h1>
+                <p class="legal-date">Stand: Dezember 2024</p>
+
+                <h2>§ 1 Geltungsbereich</h2>
+                <p>Diese Allgemeinen Geschäftsbedingungen gelten für die Nutzung der SchadensChat-Plattform, betrieben von der SchadensChat GmbH (nachfolgend "Anbieter").</p>
+
+                <h2>§ 2 Leistungsbeschreibung</h2>
+                <p>SchadensChat ist eine Plattform zur Vermittlung von Fahrzeugreparaturdiensten. Nutzer können Schadensfotos hochladen und erhalten Angebote von registrierten Werkstätten.</p>
+                <ul>
+                    <li>Für Endkunden ist die Nutzung kostenlos</li>
+                    <li>Werkstätten benötigen ein kostenpflichtiges Abonnement</li>
+                    <li>Der Anbieter vermittelt lediglich und ist nicht Vertragspartner der Reparaturverträge</li>
+                </ul>
+
+                <h2>§ 3 Registrierung und Nutzerkonto</h2>
+                <p>Die Registrierung erfordert eine gültige Telefonnummer. Der Nutzer ist für die Geheimhaltung seiner Zugangsdaten verantwortlich.</p>
+
+                <h2>§ 4 Pflichten der Nutzer</h2>
+                <p>Nutzer verpflichten sich:</p>
+                <ul>
+                    <li>Nur wahrheitsgemäße Angaben zu machen</li>
+                    <li>Keine rechtswidrigen Inhalte hochzuladen</li>
+                    <li>Die Plattform nicht missbräuchlich zu nutzen</li>
+                    <li>Keine automatisierten Zugriffe durchzuführen</li>
+                </ul>
+
+                <h2>§ 5 Werkstatt-Abonnements</h2>
+                <p>Für Werkstätten gelten folgende Bedingungen:</p>
+                <ul>
+                    <li>Die Abonnementgebühren sind im Voraus zu zahlen</li>
+                    <li>Kündigungsfrist: 30 Tage zum Monatsende</li>
+                    <li>Bei Zahlungsverzug kann der Zugang gesperrt werden</li>
+                    <li>Preisänderungen werden 30 Tage vorher angekündigt</li>
+                </ul>
+
+                <h2>§ 6 Haftung</h2>
+                <p>Der Anbieter haftet nicht für:</p>
+                <ul>
+                    <li>Die Qualität der vermittelten Dienstleistungen</li>
+                    <li>Technische Störungen oder Datenverlust</li>
+                    <li>Schäden durch Dritte oder höhere Gewalt</li>
+                </ul>
+
+                <h2>§ 7 Kündigung</h2>
+                <p>Der Anbieter kann Nutzerkonten bei Verstoß gegen diese AGB ohne Vorankündigung sperren oder löschen.</p>
+
+                <h2>§ 8 Änderungen der AGB</h2>
+                <p>Änderungen werden per E-Mail oder In-App-Benachrichtigung mitgeteilt. Bei Widerspruch innerhalb von 14 Tagen kann das Nutzungsverhältnis beendet werden.</p>
+
+                <h2>§ 9 Schlussbestimmungen</h2>
+                <p>Es gilt deutsches Recht. Gerichtsstand ist der Sitz des Anbieters. Sollten einzelne Bestimmungen unwirksam sein, bleibt die Gültigkeit der übrigen Bestimmungen unberührt.</p>
+
+                <div class="legal-contact">
+                    <p><strong>Bei Fragen zu unseren AGB:</strong></p>
+                    <p>E-Mail: legal@schadens-chat.de</p>
+                </div>
+            </main>
+        </div>
+
+        <!-- ========== DATENSCHUTZ ========== -->
+        <div class="page hidden" id="page-datenschutz">
+            <header class="header">
+                <div class="header-content">
+                    <div class="header-left">
+                        <button class="btn btn-icon btn-secondary btn-sm" onclick="App.goBack()">←</button>
+                    </div>
+                    <div class="header-center">
+                        <span class="header-title">Datenschutz</span>
+                    </div>
+                    <div class="header-right"></div>
+                </div>
+            </header>
+
+            <main class="main no-footer legal-page">
+                <h1>Datenschutzerklärung</h1>
+                <p class="legal-date">Stand: Dezember 2024</p>
+
+                <h2>1. Verantwortlicher</h2>
+                <p>Verantwortlich für die Datenverarbeitung ist:<br>
+                SchadensChat GmbH<br>
+                Musterstraße 123<br>
+                12345 Musterstadt<br>
+                E-Mail: datenschutz@schadens-chat.de</p>
+
+                <h2>2. Erhobene Daten</h2>
+                <p>Wir erheben und verarbeiten folgende personenbezogene Daten:</p>
+                <ul>
+                    <li><strong>Kontaktdaten:</strong> Telefonnummer, E-Mail-Adresse, Name</li>
+                    <li><strong>Fahrzeugdaten:</strong> Kennzeichen, Marke, Modell, Baujahr</li>
+                    <li><strong>Fotos:</strong> Schadensbilder Ihres Fahrzeugs</li>
+                    <li><strong>Standortdaten:</strong> PLZ für die Werkstattsuche</li>
+                    <li><strong>Nutzungsdaten:</strong> Geräteinformationen, IP-Adresse, Zugriffszeitpunkte</li>
+                </ul>
+
+                <h2>3. Zweck der Datenverarbeitung</h2>
+                <p>Ihre Daten werden verarbeitet für:</p>
+                <ul>
+                    <li>Vermittlung von Werkstattangeboten</li>
+                    <li>Kommunikation zwischen Ihnen und Werkstätten</li>
+                    <li>Verbesserung unserer Dienste</li>
+                    <li>Erfüllung gesetzlicher Pflichten</li>
+                </ul>
+
+                <h2>4. Rechtsgrundlagen</h2>
+                <p>Die Verarbeitung erfolgt auf Grundlage von:</p>
+                <ul>
+                    <li>Art. 6 Abs. 1 lit. a DSGVO (Einwilligung)</li>
+                    <li>Art. 6 Abs. 1 lit. b DSGVO (Vertragserfüllung)</li>
+                    <li>Art. 6 Abs. 1 lit. f DSGVO (Berechtigte Interessen)</li>
+                </ul>
+
+                <h2>5. Datenweitergabe</h2>
+                <p>Ihre Daten werden weitergegeben an:</p>
+                <ul>
+                    <li>Werkstätten, die Angebote abgeben (nur anfragerelevante Daten)</li>
+                    <li>Technische Dienstleister (Firebase/Google Cloud) - Server in der EU</li>
+                    <li>Behörden bei gesetzlicher Verpflichtung</li>
+                </ul>
+
+                <h2>6. Speicherdauer</h2>
+                <p>Ihre Daten werden gespeichert:</p>
+                <ul>
+                    <li>Anfragedaten: 12 Monate nach Abschluss</li>
+                    <li>Kontodaten: Bis zur Löschung des Kontos</li>
+                    <li>Rechnungsdaten: 10 Jahre (gesetzliche Aufbewahrungspflicht)</li>
+                </ul>
+
+                <h2>7. Ihre Rechte</h2>
+                <p>Sie haben folgende Rechte:</p>
+                <ul>
+                    <li><strong>Auskunft:</strong> Welche Daten wir über Sie speichern</li>
+                    <li><strong>Berichtigung:</strong> Korrektur falscher Daten</li>
+                    <li><strong>Löschung:</strong> "Recht auf Vergessenwerden"</li>
+                    <li><strong>Einschränkung:</strong> Einschränkung der Verarbeitung</li>
+                    <li><strong>Datenübertragbarkeit:</strong> Export Ihrer Daten</li>
+                    <li><strong>Widerspruch:</strong> Gegen bestimmte Verarbeitungen</li>
+                    <li><strong>Beschwerde:</strong> Bei einer Aufsichtsbehörde</li>
+                </ul>
+
+                <h2>8. Cookies & Tracking</h2>
+                <p>Diese App verwendet nur technisch notwendige lokale Speicherung (localStorage) für:</p>
+                <ul>
+                    <li>Spracheinstellungen</li>
+                    <li>Theme-Präferenzen</li>
+                    <li>Offline-Funktionalität</li>
+                </ul>
+                <p>Es werden keine Werbe-Cookies oder Tracking-Dienste eingesetzt.</p>
+
+                <h2>9. Datensicherheit</h2>
+                <p>Wir schützen Ihre Daten durch:</p>
+                <ul>
+                    <li>SSL/TLS-Verschlüsselung</li>
+                    <li>Zugangsbeschränkungen</li>
+                    <li>Regelmäßige Sicherheitsupdates</li>
+                    <li>Server in deutschen/EU-Rechenzentren</li>
+                </ul>
+
+                <div class="legal-contact">
+                    <p><strong>Datenschutzbeauftragter:</strong></p>
+                    <p>E-Mail: datenschutz@schadens-chat.de</p>
+                </div>
+            </main>
+        </div>
+
+        <!-- ========== IMPRESSUM ========== -->
+        <div class="page hidden" id="page-impressum">
+            <header class="header">
+                <div class="header-content">
+                    <div class="header-left">
+                        <button class="btn btn-icon btn-secondary btn-sm" onclick="App.goBack()">←</button>
+                    </div>
+                    <div class="header-center">
+                        <span class="header-title">Impressum</span>
+                    </div>
+                    <div class="header-right"></div>
+                </div>
+            </header>
+
+            <main class="main no-footer legal-page">
+                <h1>Impressum</h1>
+
+                <h2>Angaben gemäß § 5 TMG</h2>
+                <div class="legal-address">
+                    <p><strong>SchadensChat GmbH</strong></p>
+                    <p>Musterstraße 123</p>
+                    <p>12345 Musterstadt</p>
+                    <p>Deutschland</p>
+                </div>
+
+                <h2>Kontakt</h2>
+                <p>Telefon: +49 (0) 123 456789</p>
+                <p>E-Mail: info@schadens-chat.de</p>
+
+                <h2>Vertretungsberechtigte</h2>
+                <p>Geschäftsführer: Max Mustermann</p>
+
+                <h2>Registereintrag</h2>
+                <p>Registergericht: Amtsgericht Musterstadt</p>
+                <p>Registernummer: HRB 12345</p>
+
+                <h2>Umsatzsteuer-ID</h2>
+                <p>Umsatzsteuer-Identifikationsnummer gemäß § 27a UStG:</p>
+                <p>DE123456789</p>
+
+                <h2>Verantwortlich für den Inhalt</h2>
+                <p>nach § 55 Abs. 2 RStV:</p>
+                <p>Max Mustermann</p>
+                <p>Musterstraße 123, 12345 Musterstadt</p>
+
+                <h2>Streitschlichtung</h2>
+                <p>Die Europäische Kommission stellt eine Plattform zur Online-Streitbeilegung (OS) bereit:</p>
+                <p><a href="https://ec.europa.eu/consumers/odr" target="_blank" rel="noopener">https://ec.europa.eu/consumers/odr</a></p>
+                <p>Wir sind nicht bereit oder verpflichtet, an Streitbeilegungsverfahren vor einer Verbraucherschlichtungsstelle teilzunehmen.</p>
+
+                <h2>Haftung für Inhalte</h2>
+                <p>Als Diensteanbieter sind wir gemäß § 7 Abs.1 TMG für eigene Inhalte auf diesen Seiten nach den allgemeinen Gesetzen verantwortlich. Nach §§ 8 bis 10 TMG sind wir als Diensteanbieter jedoch nicht verpflichtet, übermittelte oder gespeicherte fremde Informationen zu überwachen oder nach Umständen zu forschen, die auf eine rechtswidrige Tätigkeit hinweisen.</p>
+
+                <h2>Haftung für Links</h2>
+                <p>Unser Angebot enthält Links zu externen Websites Dritter, auf deren Inhalte wir keinen Einfluss haben. Deshalb können wir für diese fremden Inhalte auch keine Gewähr übernehmen.</p>
+
+                <h2>Urheberrecht</h2>
+                <p>Die durch die Seitenbetreiber erstellten Inhalte und Werke auf diesen Seiten unterliegen dem deutschen Urheberrecht. Downloads und Kopien dieser Seite sind nur für den privaten, nicht kommerziellen Gebrauch gestattet.</p>
+
+                <div class="legal-contact">
+                    <p><strong>Kontakt für rechtliche Fragen:</strong></p>
+                    <p>E-Mail: legal@schadens-chat.de</p>
+                </div>
+            </main>
+        </div>
+
+    </div>
+
+    <!-- Toast Container -->
+    <div class="toast-container" id="toast-container"></div>
+
+    <!-- Loading Overlay -->
+    <div class="loading-overlay hidden" id="loading-overlay">
+        <div class="loading-card">
+            <div class="spinner"></div>
+            <p data-i18n="loading">Lädt...</p>
+        </div>
+    </div>
+
+    <!-- Firebase SDK -->
+    <script src="https://www.gstatic.com/firebasejs/9.23.0/firebase-app-compat.js"></script>
+    <script src="https://www.gstatic.com/firebasejs/9.23.0/firebase-auth-compat.js"></script>
+    <script src="https://www.gstatic.com/firebasejs/9.23.0/firebase-firestore-compat.js"></script>
+    <script src="https://www.gstatic.com/firebasejs/9.23.0/firebase-storage-compat.js"></script>
+
+    <!-- Firebase Config -->
+    <script src="js/firebase-config.js"></script>
+
+    <!-- Scripts -->
+    <script src="js/i18n.js"></script>
+    <script src="js/notifications.js"></script>
+    <script src="js/auth.js"></script>
+    <script src="js/request-manager.js"></script>
+    <script src="js/app.js"></script>
+
+    <!-- Service Worker Registration -->
+    <script>
+        if ('serviceWorker' in navigator) {
+            window.addEventListener('load', () => {
+                navigator.serviceWorker.register('/schadens-chat-app/sw.js')
+                    .then(reg => console.log('[App] Service Worker registered'))
+                    .catch(err => console.warn('[App] Service Worker failed:', err));
+            });
+        }
+    </script>
+</body>
+</html>

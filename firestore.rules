@@ -1,0 +1,210 @@
+rules_version = '2';
+
+/**
+ * SchadensChat - Firestore Security Rules
+ *
+ * Collections:
+ * - requests: Schadens-Anfragen von Kunden
+ * - workshops: Werkstatt-Profile
+ * - users: Benutzer (Kunden + Werkstätten)
+ */
+
+service cloud.firestore {
+  match /databases/{database}/documents {
+
+    // ========== HELPER FUNCTIONS ==========
+
+    // Prüft ob User authentifiziert ist
+    function isAuth() {
+      return request.auth != null;
+    }
+
+    // Prüft ob User eine bestimmte UID hat
+    function isUser(uid) {
+      return isAuth() && request.auth.uid == uid;
+    }
+
+    // Prüft ob User eine Werkstatt ist
+    function isWorkshop() {
+      return isAuth() &&
+        exists(/databases/$(database)/documents/workshops/$(request.auth.uid));
+    }
+
+    // Prüft ob User der Besitzer der Anfrage ist (per customerId oder Telefonnummer)
+    function isRequestOwner(requestData) {
+      return (requestData.customerId != null && request.auth.uid == requestData.customerId) ||
+             request.auth.token.phone_number == requestData.contact.phone;
+    }
+
+    // Validiert Anfrage-Daten
+    function isValidRequest() {
+      let data = request.resource.data;
+      return data.keys().hasAll(['photos', 'damage', 'vehicle', 'contact', 'location', 'status']) &&
+             data.photos is list &&
+             data.photos.size() >= 1 &&
+             data.photos.size() <= 5 &&
+             data.contact.phone is string &&
+             data.contact.phone.size() >= 8 &&
+             data.status in ['new', 'pending', 'offers_received', 'accepted', 'in_progress', 'completed', 'cancelled'];
+    }
+
+    // Validiert Angebot-Daten
+    function isValidOffer() {
+      let data = request.resource.data;
+      return data.keys().hasAll(['workshopId', 'price', 'duration', 'status']) &&
+             data.price is number &&
+             data.price > 0 &&
+             data.duration is number &&
+             data.duration > 0 &&
+             data.status in ['pending', 'accepted', 'rejected'];
+    }
+
+    // Validiert Nachricht-Daten
+    function isValidMessage() {
+      let data = request.resource.data;
+      return data.keys().hasAll(['senderId', 'senderType', 'text']) &&
+             data.text is string &&
+             data.text.size() > 0 &&
+             data.text.size() <= 2000 &&
+             data.senderType in ['customer', 'workshop'];
+    }
+
+    // ========== REQUESTS COLLECTION ==========
+
+    match /requests/{requestId} {
+      // Kunden können ihre eigenen Anfragen lesen (per customerId oder Telefonnummer)
+      // Werkstätten können alle neuen Anfragen lesen
+      allow read: if isAuth() && (
+                     resource.data.customerId == request.auth.uid ||
+                     resource.data.contact.phone == request.auth.token.phone_number ||
+                     (isWorkshop() && resource.data.status in ['new', 'pending', 'offers_received'])
+                   );
+
+      // Jeder kann eine Anfrage erstellen (auch ohne Auth - Phone-Auth später)
+      allow create: if request.resource.data.status == 'new' &&
+                       request.resource.data.photos.size() >= 1;
+
+      // Nur der Besitzer kann seine Anfrage aktualisieren
+      // Oder Werkstatt wenn sie ein Angebot abgibt
+      allow update: if isRequestOwner(resource.data) ||
+                       (isWorkshop() &&
+                        request.resource.data.diff(resource.data).affectedKeys()
+                          .hasOnly(['status', 'updatedAt']));
+
+      // Löschen nur durch Besitzer
+      allow delete: if isRequestOwner(resource.data);
+
+      // ========== OFFERS SUBCOLLECTION ==========
+      match /offers/{offerId} {
+        // Anfrage-Besitzer und Werkstätten können Angebote lesen
+        allow read: if isAuth();
+
+        // Nur Werkstätten können Angebote erstellen
+        allow create: if isWorkshop() &&
+                         isValidOffer() &&
+                         request.resource.data.workshopId == request.auth.uid;
+
+        // Werkstatt kann eigenes Angebot aktualisieren
+        // Kunde kann Angebot annehmen/ablehnen
+        allow update: if (isWorkshop() && resource.data.workshopId == request.auth.uid) ||
+                         isRequestOwner(get(/databases/$(database)/documents/requests/$(requestId)).data);
+
+        // Nur die erstellende Werkstatt kann löschen
+        allow delete: if isWorkshop() && resource.data.workshopId == request.auth.uid;
+      }
+
+      // ========== MESSAGES SUBCOLLECTION ==========
+      match /messages/{messageId} {
+        // Beide Parteien können Nachrichten lesen
+        allow read: if isAuth();
+
+        // Beide Parteien können Nachrichten senden
+        allow create: if isAuth() &&
+                         isValidMessage() &&
+                         request.resource.data.senderId == request.auth.uid;
+
+        // Nachrichten können nicht bearbeitet werden
+        allow update: if false;
+
+        // Nachrichten können nicht gelöscht werden
+        allow delete: if false;
+      }
+    }
+
+    // ========== WORKSHOPS COLLECTION ==========
+
+    match /workshops/{workshopId} {
+      // Jeder kann Werkstatt-Profile lesen (für Angebote-Anzeige)
+      allow read: if true;
+
+      // Nur die Werkstatt selbst kann ihr Profil erstellen/bearbeiten
+      allow create, update: if isUser(workshopId);
+
+      // Werkstätten können nicht gelöscht werden (nur deaktiviert)
+      allow delete: if false;
+    }
+
+    // ========== USERS COLLECTION ==========
+
+    match /users/{userId} {
+      // User kann nur eigenes Profil lesen
+      allow read: if isUser(userId);
+
+      // User kann nur eigenes Profil erstellen/bearbeiten
+      allow create, update: if isUser(userId);
+
+      // User kann eigenes Profil löschen
+      allow delete: if isUser(userId);
+    }
+
+    // ========== PUSH SUBSCRIPTIONS ==========
+
+    match /pushSubscriptions/{subId} {
+      // Nur der Besitzer kann lesen
+      allow read: if isAuth() && resource.data.userId == request.auth.uid;
+
+      // Jeder authentifizierte User kann eine Subscription erstellen
+      allow create: if isAuth() && request.resource.data.userId == request.auth.uid;
+
+      // Nur der Besitzer kann aktualisieren/löschen
+      allow update, delete: if isAuth() && resource.data.userId == request.auth.uid;
+    }
+
+    // ========== SUBSCRIPTIONS COLLECTION ==========
+
+    match /subscriptions/{workshopId} {
+      // Werkstatt kann eigene Subscription lesen
+      allow read: if isUser(workshopId);
+
+      // Werkstatt kann eigene Subscription erstellen/aktualisieren
+      allow create, update: if isUser(workshopId);
+
+      // Löschen nur via Admin SDK
+      allow delete: if false;
+    }
+
+    // ========== SUBSCRIPTION LOGS COLLECTION ==========
+
+    match /subscriptionLogs/{logId} {
+      // Nur via Admin SDK lesbar
+      allow read: if false;
+
+      // Werkstätten können Logs erstellen (für Event-Tracking)
+      allow create: if isAuth();
+
+      // Keine Updates/Deletes
+      allow update, delete: if false;
+    }
+
+    // ========== ADMIN ONLY ==========
+
+    match /settings/{document=**} {
+      allow read: if true;
+      allow write: if false; // Nur via Admin SDK
+    }
+
+    match /analytics/{document=**} {
+      allow read, write: if false; // Nur via Admin SDK
+    }
+  }
+}

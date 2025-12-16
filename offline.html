@@ -1,0 +1,237 @@
+<!DOCTYPE html>
+<html lang="de">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no, viewport-fit=cover">
+    <meta name="theme-color" content="#007AFF">
+    <title>Offline - SchadensChat</title>
+    <style>
+        * {
+            box-sizing: border-box;
+            margin: 0;
+            padding: 0;
+        }
+
+        body {
+            font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif;
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            min-height: 100vh;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            padding: 20px;
+            color: white;
+        }
+
+        .container {
+            text-align: center;
+            max-width: 400px;
+        }
+
+        .icon {
+            font-size: 80px;
+            margin-bottom: 24px;
+            animation: float 3s ease-in-out infinite;
+        }
+
+        @keyframes float {
+            0%, 100% { transform: translateY(0); }
+            50% { transform: translateY(-10px); }
+        }
+
+        h1 {
+            font-size: 28px;
+            margin-bottom: 16px;
+            font-weight: 700;
+        }
+
+        p {
+            font-size: 16px;
+            opacity: 0.9;
+            margin-bottom: 32px;
+            line-height: 1.5;
+        }
+
+        .btn {
+            display: inline-flex;
+            align-items: center;
+            gap: 8px;
+            padding: 16px 32px;
+            background: white;
+            color: #667eea;
+            font-size: 16px;
+            font-weight: 600;
+            border: none;
+            border-radius: 12px;
+            cursor: pointer;
+            transition: transform 0.2s, box-shadow 0.2s;
+        }
+
+        .btn:active {
+            transform: scale(0.97);
+        }
+
+        .btn:hover {
+            box-shadow: 0 10px 30px rgba(0,0,0,0.2);
+        }
+
+        .status {
+            margin-top: 32px;
+            font-size: 14px;
+            opacity: 0.7;
+        }
+
+        .status.online {
+            color: #4ade80;
+        }
+
+        /* Language switcher */
+        .languages {
+            display: flex;
+            gap: 8px;
+            justify-content: center;
+            margin-top: 40px;
+            flex-wrap: wrap;
+        }
+
+        .lang-btn {
+            padding: 8px 12px;
+            background: rgba(255,255,255,0.2);
+            border: none;
+            border-radius: 8px;
+            color: white;
+            font-size: 14px;
+            cursor: pointer;
+            transition: background 0.2s;
+        }
+
+        .lang-btn:hover {
+            background: rgba(255,255,255,0.3);
+        }
+
+        .lang-btn.active {
+            background: white;
+            color: #667eea;
+        }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <div class="icon">📡</div>
+        <h1 id="title">Keine Verbindung</h1>
+        <p id="message">
+            Du bist gerade offline. Bitte überprüfe deine Internetverbindung und versuche es erneut.
+        </p>
+        <button class="btn" onclick="retry()">
+            <span>🔄</span>
+            <span id="btn-text">Erneut versuchen</span>
+        </button>
+        <p class="status" id="status">Warte auf Verbindung...</p>
+
+        <div class="languages">
+            <button class="lang-btn active" onclick="setLang('de')">🇩🇪 DE</button>
+            <button class="lang-btn" onclick="setLang('en')">🇬🇧 EN</button>
+            <button class="lang-btn" onclick="setLang('tr')">🇹🇷 TR</button>
+            <button class="lang-btn" onclick="setLang('ru')">🇷🇺 RU</button>
+            <button class="lang-btn" onclick="setLang('pl')">🇵🇱 PL</button>
+            <button class="lang-btn" onclick="setLang('ar')">🇸🇦 AR</button>
+        </div>
+    </div>
+
+    <script>
+        const texts = {
+            de: {
+                title: 'Keine Verbindung',
+                message: 'Du bist gerade offline. Bitte überprüfe deine Internetverbindung und versuche es erneut.',
+                button: 'Erneut versuchen',
+                status: 'Warte auf Verbindung...',
+                online: 'Verbindung hergestellt!'
+            },
+            en: {
+                title: 'No Connection',
+                message: 'You are currently offline. Please check your internet connection and try again.',
+                button: 'Try again',
+                status: 'Waiting for connection...',
+                online: 'Connection established!'
+            },
+            tr: {
+                title: 'Bağlantı Yok',
+                message: 'Şu anda çevrimdışısınız. Lütfen internet bağlantınızı kontrol edin ve tekrar deneyin.',
+                button: 'Tekrar dene',
+                status: 'Bağlantı bekleniyor...',
+                online: 'Bağlantı kuruldu!'
+            },
+            ru: {
+                title: 'Нет соединения',
+                message: 'Вы сейчас офлайн. Пожалуйста, проверьте подключение к интернету и попробуйте снова.',
+                button: 'Попробовать снова',
+                status: 'Ожидание соединения...',
+                online: 'Соединение установлено!'
+            },
+            pl: {
+                title: 'Brak połączenia',
+                message: 'Jesteś obecnie offline. Sprawdź połączenie z internetem i spróbuj ponownie.',
+                button: 'Spróbuj ponownie',
+                status: 'Oczekiwanie na połączenie...',
+                online: 'Połączenie nawiązane!'
+            },
+            ar: {
+                title: 'لا يوجد اتصال',
+                message: 'أنت حاليًا غير متصل. يرجى التحقق من اتصالك بالإنترنت والمحاولة مرة أخرى.',
+                button: 'حاول مرة أخرى',
+                status: 'في انتظار الاتصال...',
+                online: 'تم الاتصال!'
+            }
+        };
+
+        let currentLang = localStorage.getItem('schadens-chat-lang') || 'de';
+
+        function setLang(lang) {
+            currentLang = lang;
+            document.querySelectorAll('.lang-btn').forEach(btn => {
+                btn.classList.toggle('active', btn.textContent.includes(lang.toUpperCase()));
+            });
+            updateTexts();
+
+            // Set RTL for Arabic
+            document.body.dir = lang === 'ar' ? 'rtl' : 'ltr';
+        }
+
+        function updateTexts() {
+            const t = texts[currentLang] || texts.de;
+            document.getElementById('title').textContent = t.title;
+            document.getElementById('message').textContent = t.message;
+            document.getElementById('btn-text').textContent = t.button;
+            document.getElementById('status').textContent = t.status;
+        }
+
+        function retry() {
+            window.location.reload();
+        }
+
+        // Check online status
+        function checkOnline() {
+            if (navigator.onLine) {
+                const status = document.getElementById('status');
+                const t = texts[currentLang] || texts.de;
+                status.textContent = t.online;
+                status.classList.add('online');
+
+                // Redirect after short delay
+                setTimeout(() => {
+                    window.location.href = '/schadens-chat-app/';
+                }, 1000);
+            }
+        }
+
+        // Listen for online event
+        window.addEventListener('online', checkOnline);
+
+        // Initial check
+        checkOnline();
+
+        // Set initial language
+        setLang(currentLang);
+    </script>
+</body>
+</html>

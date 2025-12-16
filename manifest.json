@@ -1,0 +1,29 @@
+{
+    "name": "SchadensChat",
+    "short_name": "SchadensChat",
+    "description": "Fahrzeugschaden melden, Angebote erhalten - schnell und einfach!",
+    "start_url": "/schadens-chat-app/index.html",
+    "display": "standalone",
+    "orientation": "portrait",
+    "background_color": "#FFFFFF",
+    "theme_color": "#007AFF",
+    "icons": [
+        {
+            "src": "img/icon-192.png",
+            "sizes": "192x192",
+            "type": "image/png",
+            "purpose": "any maskable"
+        },
+        {
+            "src": "img/icon-512.png",
+            "sizes": "512x512",
+            "type": "image/png",
+            "purpose": "any maskable"
+        }
+    ],
+    "categories": ["auto", "utilities", "business"],
+    "lang": "de",
+    "dir": "auto",
+    "prefer_related_applications": false,
+    "scope": "/schadens-chat-app/"
+}

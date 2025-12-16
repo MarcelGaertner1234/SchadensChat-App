@@ -1,0 +1,1256 @@
+<!DOCTYPE html>
+<html lang="de">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no, viewport-fit=cover">
+    <meta name="apple-mobile-web-app-capable" content="yes">
+    <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
+    <meta name="theme-color" content="#667eea">
+    <meta name="description" content="SchadensChat Werkstatt - Anfragen verwalten">
+
+    <title>SchadensChat - Werkstatt</title>
+
+    <!-- PWA Manifest -->
+    <link rel="manifest" href="manifest.json">
+    <link rel="apple-touch-icon" href="img/icon-192.png">
+
+    <!-- CSS -->
+    <link rel="stylesheet" href="css/mobile.css">
+
+    <!-- Prevent FOUC -->
+    <script>
+        (function() {
+            const theme = localStorage.getItem('schadens-chat-theme') || 'light';
+            document.documentElement.setAttribute('data-theme', theme);
+        })();
+    </script>
+
+    <style>
+        /* Werkstatt-spezifische Premium Styles */
+        .stats-grid {
+            display: grid;
+            grid-template-columns: repeat(2, 1fr);
+            gap: var(--space-md);
+            margin-bottom: var(--space-xl);
+        }
+
+        .stat-card {
+            background: var(--glass-bg);
+            backdrop-filter: var(--glass-blur);
+            -webkit-backdrop-filter: var(--glass-blur);
+            border-radius: var(--radius-xl);
+            padding: var(--space-lg);
+            text-align: center;
+            border: 1px solid var(--glass-border);
+            box-shadow: var(--shadow-card);
+            transition: all var(--transition-normal);
+        }
+
+        .stat-card:hover {
+            transform: translateY(-2px);
+            box-shadow: var(--shadow-elevated);
+        }
+
+        .stat-card:nth-child(1) .stat-value { color: var(--primary); }
+        .stat-card:nth-child(2) .stat-value { color: var(--secondary); }
+        .stat-card:nth-child(3) .stat-value { color: var(--warning); }
+        .stat-card:nth-child(4) .stat-value { color: var(--success); }
+
+        .stat-value {
+            font-size: var(--font-size-3xl);
+            font-weight: 800;
+            background: var(--gradient-primary);
+            -webkit-background-clip: text;
+            -webkit-text-fill-color: transparent;
+            background-clip: text;
+        }
+
+        .stat-card:nth-child(2) .stat-value {
+            background: var(--gradient-secondary);
+            -webkit-background-clip: text;
+            background-clip: text;
+        }
+
+        .stat-card:nth-child(3) .stat-value {
+            background: var(--gradient-warning);
+            -webkit-background-clip: text;
+            background-clip: text;
+        }
+
+        .stat-card:nth-child(4) .stat-value {
+            background: var(--gradient-success);
+            -webkit-background-clip: text;
+            background-clip: text;
+        }
+
+        .stat-label {
+            font-size: var(--font-size-sm);
+            color: var(--text-secondary);
+            margin-top: var(--space-xs);
+            font-weight: 500;
+        }
+
+        .request-card {
+            background: var(--glass-bg);
+            backdrop-filter: var(--glass-blur);
+            -webkit-backdrop-filter: var(--glass-blur);
+            border-radius: var(--radius-xl);
+            padding: var(--space-lg);
+            margin-bottom: var(--space-md);
+            border: 1px solid var(--glass-border);
+            box-shadow: var(--shadow-card);
+            transition: all var(--transition-normal);
+            position: relative;
+            overflow: hidden;
+        }
+
+        .request-card::before {
+            content: '';
+            position: absolute;
+            top: 0;
+            left: 0;
+            width: 4px;
+            height: 100%;
+            background: var(--gradient-primary);
+            border-radius: 4px 0 0 4px;
+        }
+
+        .request-card:hover {
+            transform: translateY(-2px);
+            box-shadow: var(--shadow-elevated);
+        }
+
+        .request-card.urgent::before {
+            background: var(--gradient-danger);
+        }
+
+        .request-card.new::before {
+            background: var(--gradient-secondary);
+        }
+
+        .request-photos {
+            display: flex;
+            gap: var(--space-sm);
+            margin: var(--space-md) 0;
+            overflow-x: auto;
+            padding-bottom: var(--space-xs);
+            scrollbar-width: none;
+        }
+
+        .request-photos::-webkit-scrollbar {
+            display: none;
+        }
+
+        .request-photo {
+            width: 70px;
+            height: 70px;
+            border-radius: var(--radius-lg);
+            object-fit: cover;
+            flex-shrink: 0;
+            border: 2px solid white;
+            box-shadow: var(--shadow-sm);
+            transition: transform var(--transition-fast);
+        }
+
+        .request-photo:hover {
+            transform: scale(1.05);
+        }
+
+        .quick-actions {
+            display: flex;
+            gap: var(--space-sm);
+            margin-top: var(--space-md);
+        }
+
+        .offer-form {
+            background: linear-gradient(135deg, rgba(102, 126, 234, 0.05) 0%, rgba(118, 75, 162, 0.05) 100%);
+            border-radius: var(--radius-xl);
+            padding: var(--space-lg);
+            margin-top: var(--space-lg);
+            border: 1px solid var(--glass-border);
+        }
+
+        .price-input-group {
+            position: relative;
+        }
+
+        .price-input-group .input {
+            padding-right: 50px;
+            font-size: var(--font-size-xl);
+            font-weight: 600;
+        }
+
+        .price-input-group::after {
+            content: '€';
+            position: absolute;
+            right: 20px;
+            top: 50%;
+            transform: translateY(-50%);
+            color: var(--primary);
+            font-weight: 700;
+            font-size: var(--font-size-lg);
+        }
+
+        /* Tab Navigation Premium */
+        .tab-nav {
+            display: flex;
+            background: var(--glass-bg);
+            backdrop-filter: var(--glass-blur);
+            -webkit-backdrop-filter: var(--glass-blur);
+            border-radius: var(--radius-xl);
+            padding: 6px;
+            margin-bottom: var(--space-xl);
+            border: 1px solid var(--glass-border);
+            box-shadow: var(--shadow-sm);
+        }
+
+        .tab-nav-item {
+            flex: 1;
+            padding: var(--space-sm) var(--space-md);
+            text-align: center;
+            border-radius: var(--radius-lg);
+            font-weight: 600;
+            color: var(--text-secondary);
+            cursor: pointer;
+            transition: all var(--transition-fast);
+        }
+
+        .tab-nav-item:hover:not(.active) {
+            background: rgba(102, 126, 234, 0.1);
+            color: var(--primary);
+        }
+
+        .tab-nav-item.active {
+            background: var(--gradient-primary);
+            color: white;
+            box-shadow: var(--shadow-button);
+        }
+
+        .tab-nav-item .badge {
+            margin-left: 6px;
+        }
+
+        /* Login Page Enhancement */
+        .login-hero {
+            display: flex;
+            flex-direction: column;
+            justify-content: center;
+            min-height: 100vh;
+            min-height: 100dvh;
+            padding: var(--space-xl);
+            background: linear-gradient(135deg, rgba(102, 126, 234, 0.03) 0%, rgba(118, 75, 162, 0.03) 100%);
+        }
+
+        .login-icon {
+            font-size: 80px;
+            margin-bottom: var(--space-lg);
+            animation: float 3s ease-in-out infinite;
+        }
+
+        .login-card {
+            background: var(--glass-bg);
+            backdrop-filter: var(--glass-blur);
+            -webkit-backdrop-filter: var(--glass-blur);
+            border-radius: var(--radius-2xl);
+            padding: var(--space-xl);
+            border: 1px solid var(--glass-border);
+            box-shadow: var(--shadow-elevated);
+        }
+
+        /* Success Card Enhancement */
+        #offer-sent {
+            background: linear-gradient(135deg, rgba(17, 153, 142, 0.1) 0%, rgba(56, 239, 125, 0.1) 100%) !important;
+            border: 1px solid rgba(56, 239, 125, 0.3);
+            border-radius: var(--radius-xl);
+            padding: var(--space-xl);
+        }
+
+        #offer-sent span:first-child {
+            font-size: 64px;
+            display: block;
+            margin-bottom: var(--space-md);
+        }
+    </style>
+</head>
+<body class="no-pull-refresh">
+    <div class="app" id="app">
+
+        <!-- ========== WERKSTATT LOGIN ========== -->
+        <div class="page" id="page-login">
+            <div class="main no-header no-footer login-hero">
+
+                <div class="text-center mb-xl animate-bounce-in" style="padding-top: var(--safe-top);">
+                    <div class="login-icon">🔧</div>
+                    <h1 class="hero-title">
+                        <span data-i18n="appName">SchadensChat</span>
+                    </h1>
+                    <p class="hero-subtitle" data-i18n="workshopDashboard">
+                        Werkstatt-Portal
+                    </p>
+                </div>
+
+                <div class="login-card animate-bounce-in" style="animation-delay: 0.2s;">
+                    <div class="input-group">
+                        <label class="input-label">E-Mail</label>
+                        <input type="email" class="input" id="login-email" placeholder="werkstatt@example.de">
+                    </div>
+
+                    <div class="input-group">
+                        <label class="input-label">Passwort</label>
+                        <input type="password" class="input" id="login-password" placeholder="••••••••">
+                    </div>
+
+                    <button class="btn btn-primary btn-lg btn-block btn-glow" id="login-btn" onclick="Workshop.login()" aria-label="Jetzt anmelden">
+                        Anmelden
+                    </button>
+
+                    <div class="text-center mt-md">
+                        <button class="btn btn-link" onclick="Workshop.showRegister()" style="color: var(--primary);">
+                            Noch kein Konto? Registrieren
+                        </button>
+                    </div>
+
+                    <div class="text-center">
+                        <button class="btn btn-link" onclick="Workshop.showPasswordReset()" style="color: var(--text-secondary); font-size: var(--font-size-sm);">
+                            Passwort vergessen?
+                        </button>
+                    </div>
+                </div>
+
+                <!-- Registrierungs-Formular (initial versteckt) -->
+                <div class="login-card hidden animate-bounce-in" id="register-form" style="animation-delay: 0.2s;">
+                    <div class="input-group">
+                        <label class="input-label">Werkstatt-Name</label>
+                        <input type="text" class="input" id="register-name" placeholder="z.B. Auto-Lackierzentrum Mosbach">
+                    </div>
+
+                    <div class="input-group">
+                        <label class="input-label">E-Mail</label>
+                        <input type="email" class="input" id="register-email" placeholder="werkstatt@example.de">
+                    </div>
+
+                    <div class="input-group">
+                        <label class="input-label">Passwort (mind. 6 Zeichen)</label>
+                        <input type="password" class="input" id="register-password" placeholder="••••••••">
+                    </div>
+
+                    <div class="input-group">
+                        <label class="input-label">Telefon</label>
+                        <input type="tel" class="input" id="register-phone" placeholder="+49 123 456789">
+                    </div>
+
+                    <div class="input-group">
+                        <label class="input-label">Adresse</label>
+                        <input type="text" class="input" id="register-address" placeholder="Musterstraße 1, 12345 Stadt">
+                    </div>
+
+                    <button class="btn btn-primary btn-lg btn-block btn-glow" id="register-btn" onclick="Workshop.register()" aria-label="Jetzt registrieren">
+                        Registrieren
+                    </button>
+
+                    <div class="text-center mt-md">
+                        <button class="btn btn-link" onclick="Workshop.showLogin()" style="color: var(--primary);">
+                            Bereits ein Konto? Anmelden
+                        </button>
+                    </div>
+                </div>
+
+                <!-- Passwort-Reset Formular (initial versteckt) -->
+                <div class="login-card hidden animate-bounce-in" id="reset-form" style="animation-delay: 0.2s;">
+                    <p class="text-secondary mb-md text-center">
+                        Geben Sie Ihre E-Mail-Adresse ein. Wir senden Ihnen einen Link zum Zurücksetzen.
+                    </p>
+
+                    <div class="input-group">
+                        <label class="input-label">E-Mail</label>
+                        <input type="email" class="input" id="reset-email" placeholder="werkstatt@example.de">
+                    </div>
+
+                    <button class="btn btn-primary btn-lg btn-block" onclick="Workshop.sendPasswordReset()">
+                        Link senden
+                    </button>
+
+                    <div class="text-center mt-md">
+                        <button class="btn btn-link" onclick="Workshop.showLogin()" style="color: var(--primary);">
+                            Zurück zur Anmeldung
+                        </button>
+                    </div>
+                </div>
+
+                <!-- Demo-Hinweis -->
+                <div class="text-center mt-auto animate-bounce-in" style="padding: var(--space-lg) 0; animation-delay: 0.4s;">
+                    <div class="tip-card" style="display: inline-flex;">
+                        <span class="tip-icon">💡</span>
+                        <span class="tip-text">Oder Demo-Modus: Leer lassen zum Testen</span>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <!-- ========== WERKSTATT DASHBOARD ========== -->
+        <div class="page hidden" id="page-dashboard">
+            <header class="header">
+                <div class="header-content">
+                    <div class="header-left">
+                        <span style="font-size: 24px;">🔧</span>
+                    </div>
+                    <div class="header-center">
+                        <span id="workshop-name">Meine Werkstatt</span>
+                    </div>
+                    <div class="header-right">
+                        <button class="btn btn-icon btn-secondary btn-sm" onclick="Workshop.showSettings()" aria-label="Einstellungen öffnen" title="Einstellungen">
+                            <span aria-hidden="true">⚙️</span>
+                        </button>
+                    </div>
+                </div>
+            </header>
+
+            <main class="main" style="margin-bottom: calc(var(--tab-bar-height) + var(--safe-bottom));">
+                <!-- Stats -->
+                <div class="stats-grid" role="region" aria-label="Statistik-Übersicht">
+                    <div class="stat-card" tabindex="0" aria-label="Neue Anfragen">
+                        <div class="stat-value" id="stat-new">0</div>
+                        <div class="stat-label" data-i18n="newRequests">Neue Anfragen</div>
+                        <div class="stat-trend trend-up hidden" id="trend-new" aria-label="Trend steigend">
+                            <span class="trend-icon" aria-hidden="true">↑</span>
+                            <span class="trend-value">+0</span>
+                        </div>
+                    </div>
+                    <div class="stat-card" tabindex="0" aria-label="Aktive Aufträge">
+                        <div class="stat-value" id="stat-active">0</div>
+                        <div class="stat-label" data-i18n="activeJobs">Aktive Aufträge</div>
+                        <div class="stat-trend trend-neutral hidden" id="trend-active" aria-label="Trend neutral">
+                            <span class="trend-icon" aria-hidden="true">→</span>
+                            <span class="trend-value">0</span>
+                        </div>
+                    </div>
+                    <div class="stat-card" tabindex="0" aria-label="Offene Angebote">
+                        <div class="stat-value" id="stat-offers">0</div>
+                        <div class="stat-label">Offene Angebote</div>
+                        <div class="stat-trend trend-down hidden" id="trend-offers" aria-label="Trend fallend">
+                            <span class="trend-icon" aria-hidden="true">↓</span>
+                            <span class="trend-value">-0</span>
+                        </div>
+                    </div>
+                    <div class="stat-card" tabindex="0" aria-label="Abgeschlossen diesen Monat">
+                        <div class="stat-value" id="stat-completed">0</div>
+                        <div class="stat-label">Diesen Monat</div>
+                        <div class="stat-trend trend-up hidden" id="trend-completed" aria-label="Trend steigend">
+                            <span class="trend-icon" aria-hidden="true">↑</span>
+                            <span class="trend-value">+0%</span>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- Tab Navigation -->
+                <div class="tab-nav">
+                    <div class="tab-nav-item active" data-tab="new" onclick="Workshop.switchTab('new')">
+                        Neu <span class="badge badge-danger" id="badge-new">0</span>
+                    </div>
+                    <div class="tab-nav-item" data-tab="offers" onclick="Workshop.switchTab('offers')">
+                        Angebote
+                    </div>
+                    <div class="tab-nav-item" data-tab="active" onclick="Workshop.switchTab('active')">
+                        Aktiv
+                    </div>
+                </div>
+
+                <!-- Anfragen-Liste -->
+                <div id="requests-container">
+                    <!-- Wird dynamisch gefüllt -->
+                </div>
+
+                <!-- Empty State -->
+                <div class="empty-state hidden" id="empty-state">
+                    <div class="empty-state-icon">📭</div>
+                    <h3 class="empty-state-title">Keine Anfragen</h3>
+                    <p class="empty-state-text">Neue Anfragen erscheinen hier automatisch.</p>
+                </div>
+            </main>
+
+            <!-- Tab Bar -->
+            <nav class="tab-bar" role="navigation" aria-label="Hauptnavigation">
+                <a class="tab-item active" href="#" onclick="Workshop.navigateTo('dashboard'); return false;" role="tab" aria-selected="true" aria-label="Dashboard">
+                    <span class="tab-icon" aria-hidden="true">🏠</span>
+                    <span class="tab-label">Dashboard</span>
+                </a>
+                <a class="tab-item" href="#" onclick="Workshop.navigateTo('chats'); return false;" role="tab" aria-selected="false" aria-label="Chats anzeigen">
+                    <span class="tab-icon" aria-hidden="true">💬</span>
+                    <span class="tab-label">Chats</span>
+                    <span class="tab-badge hidden" id="chat-badge" aria-label="Ungelesene Nachrichten">0</span>
+                </a>
+                <a class="tab-item" href="#" onclick="Workshop.navigateTo('settings'); return false;" role="tab" aria-selected="false" aria-label="Einstellungen">
+                    <span class="tab-icon" aria-hidden="true">⚙️</span>
+                    <span class="tab-label" data-i18n="settings">Einstellungen</span>
+                </a>
+            </nav>
+        </div>
+
+        <!-- ========== ANFRAGE DETAIL ========== -->
+        <div class="page hidden" id="page-request-detail" role="main">
+            <header class="header">
+                <div class="header-content">
+                    <div class="header-left">
+                        <button class="btn btn-icon btn-secondary btn-sm" onclick="Workshop.navigateTo('dashboard')" aria-label="Zurück zum Dashboard" title="Zurück">
+                            <span aria-hidden="true">←</span>
+                        </button>
+                    </div>
+                    <div class="header-center">
+                        <h1 class="sr-only">Anfrage-Details</h1>
+                        <span aria-hidden="true">Anfrage-Details</span>
+                    </div>
+                    <div class="header-right"></div>
+                </div>
+            </header>
+
+            <main class="main no-footer">
+                <!-- Kundeninfo -->
+                <div class="card mb-lg" id="customer-info">
+                    <!-- Dynamisch -->
+                </div>
+
+                <!-- Fahrzeuginfo -->
+                <div class="card mb-lg" id="vehicle-info">
+                    <!-- Dynamisch -->
+                </div>
+
+                <!-- Schadensfotos -->
+                <h3 class="mb-md">Schadensfotos</h3>
+                <div class="photo-grid mb-lg" id="damage-photos">
+                    <!-- Dynamisch -->
+                </div>
+
+                <!-- Schadensbeschreibung -->
+                <div class="card mb-lg" id="damage-info">
+                    <!-- Dynamisch -->
+                </div>
+
+                <!-- Angebot erstellen -->
+                <div class="offer-form" id="offer-form">
+                    <h3 class="mb-md" data-i18n="makeOffer">Angebot erstellen</h3>
+
+                    <div class="input-group">
+                        <label class="input-label" data-i18n="offerPrice">Preis (€)</label>
+                        <div class="price-input-group">
+                            <input type="number" class="input" id="offer-price" placeholder="z.B. 350" min="0" step="10">
+                        </div>
+                    </div>
+
+                    <div class="input-group">
+                        <label class="input-label" data-i18n="offerDuration">Dauer (Tage)</label>
+                        <input type="number" class="input" id="offer-duration" placeholder="z.B. 2" min="1" max="30">
+                    </div>
+
+                    <div class="input-group">
+                        <label class="input-label" data-i18n="offerNote">Anmerkung (optional)</label>
+                        <textarea class="input" id="offer-note" rows="2" placeholder="z.B. Lackierung ohne Dellen"></textarea>
+                    </div>
+
+                    <button class="btn btn-primary btn-lg btn-block" onclick="Workshop.sendOffer()">
+                        <span>📤</span>
+                        <span data-i18n="sendOffer">Angebot senden</span>
+                    </button>
+                </div>
+
+                <!-- Bereits abgegeben -->
+                <div class="card hidden" id="offer-sent" style="text-align: center; background: rgba(52, 199, 89, 0.1);">
+                    <span style="font-size: 48px;">✅</span>
+                    <h3 style="margin: var(--space-md) 0;">Angebot gesendet!</h3>
+                    <p class="text-secondary" id="offer-sent-details">350€ • 2 Tage</p>
+                    <button class="btn btn-secondary mt-auto" onclick="Workshop.openChat()">
+                        💬 Chat öffnen
+                    </button>
+                </div>
+            </main>
+        </div>
+
+        <!-- ========== CHAT-LISTE ========== -->
+        <div class="page hidden" id="page-chats">
+            <header class="header">
+                <div class="header-content">
+                    <div class="header-left"></div>
+                    <div class="header-center">
+                        💬 Chats
+                    </div>
+                    <div class="header-right"></div>
+                </div>
+            </header>
+
+            <main class="main" style="margin-bottom: calc(var(--tab-bar-height) + var(--safe-bottom));">
+                <div id="chats-list">
+                    <!-- Dynamisch -->
+                </div>
+
+                <div class="empty-state" id="chats-empty">
+                    <div class="empty-state-icon">💬</div>
+                    <h3 class="empty-state-title">Keine Chats</h3>
+                    <p class="empty-state-text">Chats mit Kunden erscheinen hier.</p>
+                </div>
+            </main>
+
+            <!-- Tab Bar -->
+            <nav class="tab-bar">
+                <a class="tab-item" href="#" onclick="Workshop.navigateTo('dashboard'); return false;">
+                    <span class="tab-icon">🏠</span>
+                    <span class="tab-label">Dashboard</span>
+                </a>
+                <a class="tab-item active" href="#" onclick="Workshop.navigateTo('chats'); return false;">
+                    <span class="tab-icon">💬</span>
+                    <span class="tab-label">Chats</span>
+                </a>
+                <a class="tab-item" href="#" onclick="Workshop.navigateTo('settings'); return false;">
+                    <span class="tab-icon">⚙️</span>
+                    <span class="tab-label" data-i18n="settings">Einstellungen</span>
+                </a>
+            </nav>
+        </div>
+
+        <!-- ========== WERKSTATT CHAT ========== -->
+        <div class="page hidden" id="page-workshop-chat">
+            <header class="header">
+                <div class="header-content">
+                    <div class="header-left">
+                        <button class="btn btn-icon btn-secondary btn-sm" onclick="Workshop.navigateTo('chats')">
+                            ←
+                        </button>
+                    </div>
+                    <div class="header-center">
+                        <div class="header-title" id="ws-chat-customer-name">Kunde</div>
+                        <div class="header-subtitle" id="ws-chat-vehicle">BMW X5</div>
+                    </div>
+                    <div class="header-right">
+                        <button class="btn btn-icon btn-secondary btn-sm" onclick="Workshop.showRequestFromChat()">
+                            📋
+                        </button>
+                    </div>
+                </div>
+            </header>
+
+            <main class="main chat-view no-footer">
+                <div class="chat-messages" id="ws-chat-messages">
+                    <!-- Dynamisch -->
+                </div>
+
+                <div class="chat-input-container">
+                    <textarea class="chat-input" id="ws-chat-input" rows="1" placeholder="Nachricht schreiben..."></textarea>
+                    <button class="chat-send-btn" id="ws-chat-send-btn" onclick="Workshop.sendMessage()">
+                        <span>➤</span>
+                    </button>
+                </div>
+            </main>
+        </div>
+
+        <!-- ========== EINSTELLUNGEN ========== -->
+        <div class="page hidden" id="page-settings">
+            <header class="header">
+                <div class="header-content">
+                    <div class="header-left"></div>
+                    <div class="header-center">
+                        <span data-i18n="settings">Einstellungen</span>
+                    </div>
+                    <div class="header-right"></div>
+                </div>
+            </header>
+
+            <main class="main" style="margin-bottom: calc(var(--tab-bar-height) + var(--safe-bottom));">
+                <!-- Theme Toggle -->
+                <div class="card mb-lg">
+                    <h3 class="mb-md">Erscheinungsbild</h3>
+                    <div class="list-item" style="padding: var(--space-sm) 0;">
+                        <div class="list-item-content">
+                            <div class="list-item-title">Dark Mode</div>
+                            <div class="list-item-subtitle">Dunkles Design aktivieren</div>
+                        </div>
+                        <div class="theme-toggle-container" style="margin: 0;">
+                            <button class="theme-toggle-btn" onclick="Workshop.toggleTheme()" aria-label="Theme wechseln">
+                                <span class="theme-icon theme-icon-light">☀️</span>
+                                <span class="theme-icon theme-icon-dark">🌙</span>
+                                <span class="theme-toggle-slider"></span>
+                            </button>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- Werkstatt-Profil -->
+                <div class="card mb-lg">
+                    <h3 class="mb-md">Werkstatt-Profil</h3>
+
+                    <div class="input-group">
+                        <label class="input-label">Werkstatt-Name</label>
+                        <input type="text" class="input" id="settings-name" value="Auto-Lackierzentrum">
+                    </div>
+
+                    <div class="input-group">
+                        <label class="input-label">Telefon</label>
+                        <input type="tel" class="input" id="settings-phone" value="+49 123 456789">
+                    </div>
+
+                    <div class="input-group">
+                        <label class="input-label">E-Mail</label>
+                        <input type="email" class="input" id="settings-email" value="info@werkstatt.de">
+                    </div>
+
+                    <div class="input-group">
+                        <label class="input-label">Adresse</label>
+                        <input type="text" class="input" id="settings-address" value="Musterstraße 1, 74821 Mosbach">
+                    </div>
+                </div>
+
+                <!-- Benachrichtigungen -->
+                <div class="card mb-lg">
+                    <h3 class="mb-md" data-i18n="notifications">Benachrichtigungen</h3>
+
+                    <div class="list-item" style="padding: var(--space-sm) 0;">
+                        <div class="list-item-content">
+                            <div class="list-item-title">Push-Benachrichtigungen</div>
+                            <div class="list-item-subtitle">Bei neuen Anfragen</div>
+                        </div>
+                        <label class="switch">
+                            <input type="checkbox" id="settings-push" checked>
+                            <span class="slider"></span>
+                        </label>
+                    </div>
+
+                    <div class="list-item" style="padding: var(--space-sm) 0;">
+                        <div class="list-item-content">
+                            <div class="list-item-title">E-Mail-Benachrichtigungen</div>
+                            <div class="list-item-subtitle">Zusammenfassung täglich</div>
+                        </div>
+                        <label class="switch">
+                            <input type="checkbox" id="settings-email-notify">
+                            <span class="slider"></span>
+                        </label>
+                    </div>
+                </div>
+
+                <!-- Sprache -->
+                <div class="card mb-lg">
+                    <h3 class="mb-md" data-i18n="language">Sprache</h3>
+                    <div class="language-selector" id="ws-language-selector">
+                        <!-- Dynamisch -->
+                    </div>
+                </div>
+
+                <!-- Abo verwalten -->
+                <div class="card mb-lg">
+                    <h3 class="mb-md">Abonnement</h3>
+                    <div id="subscription-status-container">
+                        <!-- Wird dynamisch gefüllt -->
+                    </div>
+                </div>
+
+                <!-- Rechtliches -->
+                <div class="card mb-lg">
+                    <h3 class="mb-md">Rechtliches</h3>
+                    <div class="list" style="margin: calc(var(--space-lg) * -1); margin-top: 0; border-radius: 0;">
+                        <a href="#" class="list-item" onclick="Workshop.navigateTo('agb'); return false;">
+                            <span class="list-item-icon" style="background: var(--bg-tertiary); color: var(--text-primary);">📜</span>
+                            <div class="list-item-content">
+                                <div class="list-item-title">AGB</div>
+                                <div class="list-item-subtitle">Allgemeine Geschäftsbedingungen</div>
+                            </div>
+                            <span class="list-item-chevron">›</span>
+                        </a>
+                        <a href="#" class="list-item" onclick="Workshop.navigateTo('datenschutz'); return false;">
+                            <span class="list-item-icon" style="background: var(--bg-tertiary); color: var(--text-primary);">🔒</span>
+                            <div class="list-item-content">
+                                <div class="list-item-title">Datenschutz</div>
+                                <div class="list-item-subtitle">Datenschutzerklärung</div>
+                            </div>
+                            <span class="list-item-chevron">›</span>
+                        </a>
+                        <a href="#" class="list-item" onclick="Workshop.navigateTo('impressum'); return false;">
+                            <span class="list-item-icon" style="background: var(--bg-tertiary); color: var(--text-primary);">ℹ️</span>
+                            <div class="list-item-content">
+                                <div class="list-item-title">Impressum</div>
+                                <div class="list-item-subtitle">Anbieterinformationen</div>
+                            </div>
+                            <span class="list-item-chevron">›</span>
+                        </a>
+                    </div>
+                </div>
+
+                <!-- Abmelden -->
+                <button class="btn btn-danger btn-block" onclick="Workshop.logout()">
+                    <span data-i18n="logout">Abmelden</span>
+                </button>
+
+                <!-- Legal Footer -->
+                <div class="legal-footer">
+                    <p class="legal-copyright">© 2024 SchadensChat. Alle Rechte vorbehalten.</p>
+                </div>
+            </main>
+
+            <!-- Tab Bar -->
+            <nav class="tab-bar">
+                <a class="tab-item" href="#" onclick="Workshop.navigateTo('dashboard'); return false;">
+                    <span class="tab-icon">🏠</span>
+                    <span class="tab-label">Dashboard</span>
+                </a>
+                <a class="tab-item" href="#" onclick="Workshop.navigateTo('chats'); return false;">
+                    <span class="tab-icon">💬</span>
+                    <span class="tab-label">Chats</span>
+                </a>
+                <a class="tab-item active" href="#" onclick="Workshop.navigateTo('settings'); return false;">
+                    <span class="tab-icon">⚙️</span>
+                    <span class="tab-label" data-i18n="settings">Einstellungen</span>
+                </a>
+            </nav>
+        </div>
+
+        <!-- ========== AGB SEITE ========== -->
+        <div class="page hidden" id="page-agb">
+            <header class="header">
+                <div class="header-content">
+                    <div class="header-left">
+                        <button class="btn btn-icon btn-secondary btn-sm" onclick="Workshop.navigateTo('settings')">
+                            ←
+                        </button>
+                    </div>
+                    <div class="header-center">
+                        AGB
+                    </div>
+                    <div class="header-right"></div>
+                </div>
+            </header>
+
+            <main class="main no-footer legal-page-content">
+                <h1>Allgemeine Geschäftsbedingungen</h1>
+                <p class="legal-updated">Stand: Dezember 2024</p>
+
+                <section class="legal-section">
+                    <h2>§ 1 Geltungsbereich</h2>
+                    <p>Diese Allgemeinen Geschäftsbedingungen gelten für die Nutzung der SchadensChat-Plattform, einem Vermittlungsservice zwischen Fahrzeughaltern und Werkstätten.</p>
+                </section>
+
+                <section class="legal-section">
+                    <h2>§ 2 Leistungsbeschreibung</h2>
+                    <p>SchadensChat bietet eine digitale Plattform zur:</p>
+                    <ul>
+                        <li>Erfassung und Dokumentation von Fahrzeugschäden</li>
+                        <li>Vermittlung von Reparaturanfragen an Werkstätten</li>
+                        <li>Kommunikation zwischen Fahrzeughaltern und Werkstätten</li>
+                        <li>Angebotserstellung und -vergleich</li>
+                    </ul>
+                </section>
+
+                <section class="legal-section">
+                    <h2>§ 3 Vertragsschluss</h2>
+                    <p>3.1 Die Nutzung der Plattform erfordert eine Registrierung.</p>
+                    <p>3.2 Mit der Registrierung akzeptiert der Nutzer diese AGB.</p>
+                    <p>3.3 Werkstätten benötigen ein kostenpflichtiges Abonnement zur Angebotsabgabe.</p>
+                </section>
+
+                <section class="legal-section">
+                    <h2>§ 4 Pflichten der Nutzer</h2>
+                    <p>Der Nutzer verpflichtet sich:</p>
+                    <ul>
+                        <li>Wahrheitsgemäße Angaben zu machen</li>
+                        <li>Keine rechtswidrigen Inhalte zu übermitteln</li>
+                        <li>Die Plattform nicht zu missbrauchen</li>
+                        <li>Zugangsdaten vertraulich zu behandeln</li>
+                    </ul>
+                </section>
+
+                <section class="legal-section">
+                    <h2>§ 5 Haftung</h2>
+                    <p>5.1 SchadensChat haftet nicht für die Qualität der vermittelten Werkstattleistungen.</p>
+                    <p>5.2 Die Haftung für leichte Fahrlässigkeit ist ausgeschlossen, soweit gesetzlich zulässig.</p>
+                    <p>5.3 Für Schäden aus der Verletzung von Leben, Körper oder Gesundheit haften wir unbeschränkt.</p>
+                </section>
+
+                <section class="legal-section">
+                    <h2>§ 6 Abonnement & Zahlung</h2>
+                    <p>6.1 Werkstätten können zwischen verschiedenen Abonnement-Plänen wählen.</p>
+                    <p>6.2 Die Abrechnung erfolgt monatlich im Voraus.</p>
+                    <p>6.3 Eine Kündigung ist jederzeit zum Ende der Laufzeit möglich.</p>
+                    <p>6.4 Bei Zahlungsverzug behalten wir uns vor, den Zugang zu sperren.</p>
+                </section>
+
+                <section class="legal-section">
+                    <h2>§ 7 Kündigung</h2>
+                    <p>7.1 Nutzer können ihr Konto jederzeit löschen.</p>
+                    <p>7.2 Bei Verstoß gegen diese AGB behalten wir uns eine fristlose Kündigung vor.</p>
+                </section>
+
+                <section class="legal-section">
+                    <h2>§ 8 Änderungen der AGB</h2>
+                    <p>Wir behalten uns vor, diese AGB zu ändern. Änderungen werden per E-Mail angekündigt und gelten als genehmigt, wenn nicht innerhalb von 30 Tagen widersprochen wird.</p>
+                </section>
+
+                <section class="legal-section">
+                    <h2>§ 9 Schlussbestimmungen</h2>
+                    <p>9.1 Es gilt deutsches Recht.</p>
+                    <p>9.2 Gerichtsstand ist, soweit zulässig, der Sitz des Betreibers.</p>
+                    <p>9.3 Sollten einzelne Bestimmungen unwirksam sein, bleibt die Wirksamkeit der übrigen Bestimmungen unberührt.</p>
+                </section>
+            </main>
+        </div>
+
+        <!-- ========== DATENSCHUTZ SEITE ========== -->
+        <div class="page hidden" id="page-datenschutz">
+            <header class="header">
+                <div class="header-content">
+                    <div class="header-left">
+                        <button class="btn btn-icon btn-secondary btn-sm" onclick="Workshop.navigateTo('settings')">
+                            ←
+                        </button>
+                    </div>
+                    <div class="header-center">
+                        Datenschutz
+                    </div>
+                    <div class="header-right"></div>
+                </div>
+            </header>
+
+            <main class="main no-footer legal-page-content">
+                <h1>Datenschutzerklärung</h1>
+                <p class="legal-updated">Stand: Dezember 2024</p>
+
+                <section class="legal-section">
+                    <h2>1. Verantwortlicher</h2>
+                    <p>Verantwortlich für die Datenverarbeitung ist:</p>
+                    <p>SchadensChat GmbH<br>
+                    Musterstraße 1<br>
+                    74821 Mosbach<br>
+                    E-Mail: datenschutz@schadens-chat.de</p>
+                </section>
+
+                <section class="legal-section">
+                    <h2>2. Erhobene Daten</h2>
+                    <p>Wir erheben und verarbeiten folgende Daten:</p>
+                    <ul>
+                        <li><strong>Kontaktdaten:</strong> Name, E-Mail, Telefonnummer</li>
+                        <li><strong>Fahrzeugdaten:</strong> Kennzeichen, Marke, Modell, Baujahr</li>
+                        <li><strong>Schadensdaten:</strong> Fotos, Beschreibungen, Standortdaten</li>
+                        <li><strong>Nutzungsdaten:</strong> IP-Adresse, Gerätetyp, Browsertyp</li>
+                        <li><strong>Kommunikation:</strong> Chat-Nachrichten zwischen Nutzern</li>
+                    </ul>
+                </section>
+
+                <section class="legal-section">
+                    <h2>3. Zweck der Verarbeitung</h2>
+                    <p>Die Daten werden verarbeitet für:</p>
+                    <ul>
+                        <li>Bereitstellung unserer Dienste</li>
+                        <li>Vermittlung zwischen Kunden und Werkstätten</li>
+                        <li>Kommunikation und Kundenservice</li>
+                        <li>Verbesserung unserer Plattform</li>
+                        <li>Erfüllung rechtlicher Pflichten</li>
+                    </ul>
+                </section>
+
+                <section class="legal-section">
+                    <h2>4. Rechtsgrundlage</h2>
+                    <p>Die Verarbeitung erfolgt auf Basis von:</p>
+                    <ul>
+                        <li>Art. 6 Abs. 1 lit. a DSGVO (Einwilligung)</li>
+                        <li>Art. 6 Abs. 1 lit. b DSGVO (Vertragserfüllung)</li>
+                        <li>Art. 6 Abs. 1 lit. f DSGVO (Berechtigtes Interesse)</li>
+                    </ul>
+                </section>
+
+                <section class="legal-section">
+                    <h2>5. Speicherdauer</h2>
+                    <p>Wir speichern Ihre Daten nur so lange, wie es für die Erfüllung der Zwecke erforderlich ist oder gesetzliche Aufbewahrungsfristen bestehen. Nach Beendigung der Geschäftsbeziehung werden Daten nach maximal 10 Jahren gelöscht.</p>
+                </section>
+
+                <section class="legal-section">
+                    <h2>6. Ihre Rechte</h2>
+                    <p>Sie haben das Recht auf:</p>
+                    <ul>
+                        <li><strong>Auskunft</strong> über Ihre gespeicherten Daten (Art. 15 DSGVO)</li>
+                        <li><strong>Berichtigung</strong> unrichtiger Daten (Art. 16 DSGVO)</li>
+                        <li><strong>Löschung</strong> Ihrer Daten (Art. 17 DSGVO)</li>
+                        <li><strong>Einschränkung</strong> der Verarbeitung (Art. 18 DSGVO)</li>
+                        <li><strong>Datenübertragbarkeit</strong> (Art. 20 DSGVO)</li>
+                        <li><strong>Widerspruch</strong> gegen die Verarbeitung (Art. 21 DSGVO)</li>
+                    </ul>
+                </section>
+
+                <section class="legal-section">
+                    <h2>7. Cookies</h2>
+                    <p>Wir verwenden technisch notwendige Cookies für die Funktion der Plattform. Analytische Cookies werden nur mit Ihrer Einwilligung gesetzt.</p>
+                </section>
+
+                <section class="legal-section">
+                    <h2>8. Drittanbieter</h2>
+                    <p>Wir nutzen folgende Dienste:</p>
+                    <ul>
+                        <li><strong>Firebase (Google):</strong> Hosting, Datenbank, Authentifizierung</li>
+                        <li><strong>AWS:</strong> E-Mail-Versand (EU-Region)</li>
+                    </ul>
+                    <p>Alle Dienste sind DSGVO-konform und verarbeiten Daten in der EU oder unter angemessenen Garantien.</p>
+                </section>
+
+                <section class="legal-section">
+                    <h2>9. Beschwerderecht</h2>
+                    <p>Sie haben das Recht, sich bei einer Datenschutz-Aufsichtsbehörde zu beschweren.</p>
+                </section>
+
+                <section class="legal-section">
+                    <h2>10. Kontakt</h2>
+                    <p>Bei Fragen zum Datenschutz: <strong>datenschutz@schadens-chat.de</strong></p>
+                </section>
+            </main>
+        </div>
+
+        <!-- ========== IMPRESSUM SEITE ========== -->
+        <div class="page hidden" id="page-impressum">
+            <header class="header">
+                <div class="header-content">
+                    <div class="header-left">
+                        <button class="btn btn-icon btn-secondary btn-sm" onclick="Workshop.navigateTo('settings')">
+                            ←
+                        </button>
+                    </div>
+                    <div class="header-center">
+                        Impressum
+                    </div>
+                    <div class="header-right"></div>
+                </div>
+            </header>
+
+            <main class="main no-footer legal-page-content">
+                <h1>Impressum</h1>
+
+                <section class="legal-section">
+                    <h2>Angaben gemäß § 5 TMG</h2>
+                    <p><strong>SchadensChat GmbH</strong><br>
+                    Musterstraße 1<br>
+                    74821 Mosbach<br>
+                    Deutschland</p>
+                </section>
+
+                <section class="legal-section">
+                    <h2>Kontakt</h2>
+                    <p>Telefon: +49 (0) 123 456789<br>
+                    E-Mail: info@schadens-chat.de<br>
+                    Website: www.schadens-chat.de</p>
+                </section>
+
+                <section class="legal-section">
+                    <h2>Vertretungsberechtigter</h2>
+                    <p>Geschäftsführer: Max Mustermann</p>
+                </section>
+
+                <section class="legal-section">
+                    <h2>Registereintrag</h2>
+                    <p>Handelsregister: Amtsgericht Mosbach<br>
+                    Registernummer: HRB 12345</p>
+                </section>
+
+                <section class="legal-section">
+                    <h2>Umsatzsteuer-ID</h2>
+                    <p>Umsatzsteuer-Identifikationsnummer gemäß § 27 a Umsatzsteuergesetz:<br>
+                    DE 123 456 789</p>
+                </section>
+
+                <section class="legal-section">
+                    <h2>Verantwortlich für den Inhalt nach § 55 Abs. 2 RStV</h2>
+                    <p>Max Mustermann<br>
+                    Musterstraße 1<br>
+                    74821 Mosbach</p>
+                </section>
+
+                <section class="legal-section">
+                    <h2>Streitschlichtung</h2>
+                    <p>Die Europäische Kommission stellt eine Plattform zur Online-Streitbeilegung (OS) bereit: <a href="https://ec.europa.eu/consumers/odr" target="_blank">https://ec.europa.eu/consumers/odr</a></p>
+                    <p>Wir sind nicht bereit oder verpflichtet, an Streitbeilegungsverfahren vor einer Verbraucherschlichtungsstelle teilzunehmen.</p>
+                </section>
+
+                <section class="legal-section">
+                    <h2>Haftungsausschluss</h2>
+                    <p><strong>Haftung für Inhalte:</strong> Die Inhalte unserer Seiten wurden mit größter Sorgfalt erstellt. Für die Richtigkeit, Vollständigkeit und Aktualität der Inhalte können wir jedoch keine Gewähr übernehmen.</p>
+                    <p><strong>Haftung für Links:</strong> Unser Angebot enthält Links zu externen Webseiten. Auf deren Inhalte haben wir keinen Einfluss und übernehmen keine Gewähr.</p>
+                </section>
+
+                <section class="legal-section">
+                    <h2>Urheberrecht</h2>
+                    <p>Die durch die Seitenbetreiber erstellten Inhalte und Werke auf diesen Seiten unterliegen dem deutschen Urheberrecht. Die Vervielfältigung, Bearbeitung, Verbreitung und jede Art der Verwertung außerhalb der Grenzen des Urheberrechtes bedürfen der schriftlichen Zustimmung des jeweiligen Autors bzw. Erstellers.</p>
+                </section>
+            </main>
+        </div>
+
+        <!-- ========== ABO SEITE ========== -->
+        <div class="page hidden" id="page-subscription">
+            <header class="header">
+                <div class="header-content">
+                    <div class="header-left">
+                        <button class="btn btn-icon btn-secondary btn-sm" onclick="Workshop.navigateTo('settings')">
+                            ←
+                        </button>
+                    </div>
+                    <div class="header-center">
+                        Abonnement
+                    </div>
+                    <div class="header-right"></div>
+                </div>
+            </header>
+
+            <main class="main no-footer">
+                <div class="text-center mb-xl" style="padding-top: var(--space-lg);">
+                    <h2 style="font-weight: 700;">Wählen Sie Ihren Plan</h2>
+                    <p class="text-secondary">Starten Sie mit 14 Tagen kostenlosem Trial</p>
+                </div>
+
+                <div id="pricing-cards-container" class="pricing-cards">
+                    <!-- Wird dynamisch gefüllt -->
+                </div>
+
+                <div class="text-center mt-xl">
+                    <p class="text-secondary" style="font-size: var(--font-size-sm);">
+                        Alle Preise zzgl. MwSt. • Jederzeit kündbar • Keine versteckten Kosten
+                    </p>
+                </div>
+            </main>
+        </div>
+
+    </div>
+
+    <!-- Toast Container -->
+    <div class="toast-container" id="toast-container"></div>
+
+    <!-- Loading Overlay (Enhanced) -->
+    <div class="loading-overlay hidden" id="loading-overlay">
+        <div class="loading-card">
+            <div class="spinner-premium"></div>
+            <p class="loading-text" id="loading-text">Lädt...</p>
+            <p class="loading-subtext" id="loading-subtext"></p>
+        </div>
+    </div>
+
+    <!-- Custom Modal Dialog -->
+    <div class="modal-overlay hidden" id="modal-overlay">
+        <div class="modal-card" id="modal-card">
+            <div class="modal-icon" id="modal-icon">⚠️</div>
+            <h3 class="modal-title" id="modal-title">Titel</h3>
+            <p class="modal-text" id="modal-text">Beschreibung</p>
+            <div class="modal-actions" id="modal-actions">
+                <button class="btn btn-secondary" id="modal-cancel">Abbrechen</button>
+                <button class="btn btn-primary" id="modal-confirm">Bestätigen</button>
+            </div>
+        </div>
+    </div>
+
+    <!-- Success Animation Overlay -->
+    <div class="success-overlay hidden" id="success-overlay">
+        <div class="success-card">
+            <div class="success-checkmark">
+                <svg class="checkmark-svg" viewBox="0 0 52 52">
+                    <circle class="checkmark-circle" cx="26" cy="26" r="25" fill="none"/>
+                    <path class="checkmark-check" fill="none" d="M14.1 27.2l7.1 7.2 16.7-16.8"/>
+                </svg>
+            </div>
+            <p class="success-text" id="success-text">Erfolgreich!</p>
+        </div>
+    </div>
+
+    <!-- Cookie Consent Banner -->
+    <div class="cookie-banner hidden" id="cookie-banner">
+        <div class="cookie-content">
+            <div class="cookie-icon">🍪</div>
+            <div class="cookie-text">
+                <strong>Diese Website verwendet Cookies</strong>
+                <p>Wir nutzen Cookies für eine bessere Nutzererfahrung. Mit der Nutzung stimmen Sie unserer <a href="#" onclick="Workshop.navigateTo('datenschutz'); return false;">Datenschutzerklärung</a> zu.</p>
+            </div>
+        </div>
+        <div class="cookie-actions">
+            <button class="btn btn-secondary btn-sm" onclick="Workshop.acceptCookies('essential')">Nur Notwendige</button>
+            <button class="btn btn-primary btn-sm" onclick="Workshop.acceptCookies('all')">Alle akzeptieren</button>
+        </div>
+    </div>
+
+    <!-- Network Status Indicator -->
+    <div class="network-status hidden" id="network-status">
+        <span class="network-icon">📡</span>
+        <span class="network-text">Offline - Änderungen werden gespeichert</span>
+    </div>
+
+    <!-- Trial Banner (wird dynamisch eingefügt) -->
+    <div class="trial-countdown-banner hidden" id="trial-banner">
+        <div class="trial-countdown-content">
+            <span class="trial-countdown-icon">🎁</span>
+            <span class="trial-countdown-text">Trial: <strong id="trial-days">14</strong> Tage übrig</span>
+        </div>
+        <button class="btn btn-sm btn-white" onclick="Workshop.showSubscription()">Upgraden</button>
+    </div>
+
+    <!-- Switch Toggle Style -->
+    <style>
+        .switch {
+            position: relative;
+            display: inline-block;
+            width: 51px;
+            height: 31px;
+        }
+
+        .switch input {
+            opacity: 0;
+            width: 0;
+            height: 0;
+        }
+
+        .switch .slider {
+            position: absolute;
+            cursor: pointer;
+            top: 0;
+            left: 0;
+            right: 0;
+            bottom: 0;
+            background-color: var(--gray-300);
+            transition: 0.3s;
+            border-radius: 31px;
+        }
+
+        .switch .slider:before {
+            position: absolute;
+            content: "";
+            height: 27px;
+            width: 27px;
+            left: 2px;
+            bottom: 2px;
+            background-color: white;
+            transition: 0.3s;
+            border-radius: 50%;
+            box-shadow: 0 2px 4px rgba(0,0,0,0.2);
+        }
+
+        .switch input:checked + .slider {
+            background-color: var(--secondary);
+        }
+
+        .switch input:checked + .slider:before {
+            transform: translateX(20px);
+        }
+    </style>
+
+    <!-- Firebase SDK -->
+    <script src="https://www.gstatic.com/firebasejs/9.23.0/firebase-app-compat.js"></script>
+    <script src="https://www.gstatic.com/firebasejs/9.23.0/firebase-auth-compat.js"></script>
+    <script src="https://www.gstatic.com/firebasejs/9.23.0/firebase-firestore-compat.js"></script>
+    <script src="https://www.gstatic.com/firebasejs/9.23.0/firebase-storage-compat.js"></script>
+
+    <!-- Firebase Config -->
+    <script src="js/firebase-config.js"></script>
+
+    <!-- Scripts -->
+    <script src="js/i18n.js"></script>
+    <script src="js/notifications.js"></script>
+    <script src="js/auth.js"></script>
+    <script src="js/workshop-requests.js"></script>
+    <script src="js/subscription.js"></script>
+    <script src="js/workshop.js"></script>
+
+    <!-- Service Worker Registration -->
+    <script>
+        if ('serviceWorker' in navigator) {
+            window.addEventListener('load', () => {
+                navigator.serviceWorker.register('/schadens-chat-app/sw.js')
+                    .then(reg => console.log('[Workshop] Service Worker registered'))
+                    .catch(err => console.warn('[Workshop] Service Worker failed:', err));
+            });
+        }
+    </script>
+</body>
+</html>

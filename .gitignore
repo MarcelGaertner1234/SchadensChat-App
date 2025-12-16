@@ -1,0 +1,41 @@
+# Dependencies
+node_modules/
+
+# Firebase
+.firebase/
+
+# Environment
+.env
+.env.local
+
+# Build outputs
+/www/
+/dist/
+/build/
+
+# IDE
+.idea/
+.vscode/
+*.swp
+*.swo
+
+# OS
+.DS_Store
+Thumbs.db
+
+# Logs
+*.log
+npm-debug.log*
+
+# Mobile builds (large files)
+android/.gradle/
+android/app/build/
+ios/App/Pods/
+*.apk
+*.ipa
+*.aab
+
+# Secrets (if any)
+**/secrets/
+*.pem
+*.key

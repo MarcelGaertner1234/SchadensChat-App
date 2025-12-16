@@ -1,0 +1,120 @@
+rules_version = '2';
+
+/**
+ * SchadensChat - Firebase Storage Rules
+ *
+ * Paths:
+ * - /requests/{requestId}/*.jpg - Schadensfotos
+ * - /workshops/{workshopId}/logo.* - Werkstatt-Logos
+ */
+
+service firebase.storage {
+  match /b/{bucket}/o {
+
+    // ========== HELPER FUNCTIONS ==========
+
+    // Prüft ob User authentifiziert ist
+    function isAuth() {
+      return request.auth != null;
+    }
+
+    // Prüft Dateigröße (in Bytes)
+    function maxSize(size) {
+      return request.resource.size <= size;
+    }
+
+    // Prüft ob es ein Bild ist
+    function isImage() {
+      return request.resource.contentType.matches('image/.*');
+    }
+
+    // Prüft ob es ein erlaubtes Bildformat ist
+    function isAllowedImageType() {
+      return request.resource.contentType in [
+        'image/jpeg',
+        'image/jpg',
+        'image/png',
+        'image/webp',
+        'image/heic',
+        'image/heif'
+      ];
+    }
+
+    // ========== REQUESTS PHOTOS ==========
+
+    match /requests/{requestId}/{fileName} {
+      // Jeder kann Fotos lesen (für Werkstatt-Ansicht)
+      allow read: if true;
+
+      // Jeder kann Fotos hochladen (Kunde ohne Auth möglich)
+      // Max 10 MB, nur Bilder
+      allow create: if isImage() &&
+                       isAllowedImageType() &&
+                       maxSize(10 * 1024 * 1024);
+
+      // Fotos können nicht überschrieben werden
+      allow update: if false;
+
+      // Fotos können nur vom Besitzer gelöscht werden
+      // (In Production: via Cloud Function nach Request-Löschung)
+      allow delete: if isAuth();
+    }
+
+    // ========== WORKSHOP LOGOS ==========
+
+    match /workshops/{workshopId}/{fileName} {
+      // Jeder kann Logos lesen
+      allow read: if true;
+
+      // Nur die Werkstatt selbst kann ihr Logo hochladen
+      // Max 5 MB
+      allow create, update: if isAuth() &&
+                               request.auth.uid == workshopId &&
+                               isImage() &&
+                               isAllowedImageType() &&
+                               maxSize(5 * 1024 * 1024);
+
+      // Nur die Werkstatt kann ihr Logo löschen
+      allow delete: if isAuth() && request.auth.uid == workshopId;
+    }
+
+    // ========== USER AVATARS ==========
+
+    match /users/{userId}/{fileName} {
+      // Jeder kann Avatare lesen
+      allow read: if true;
+
+      // Nur der User selbst kann seinen Avatar hochladen
+      // Max 2 MB
+      allow create, update: if isAuth() &&
+                               request.auth.uid == userId &&
+                               isImage() &&
+                               maxSize(2 * 1024 * 1024);
+
+      // Nur der User kann seinen Avatar löschen
+      allow delete: if isAuth() && request.auth.uid == userId;
+    }
+
+    // ========== TEMP UPLOADS ==========
+    // Für unauth Uploads (werden später via Cloud Function verschoben)
+
+    match /temp/{uploadId}/{fileName} {
+      // Temporäre Dateien können nicht gelesen werden
+      allow read: if false;
+
+      // Jeder kann temporär hochladen (Rate-Limiting via App Check)
+      allow create: if isImage() &&
+                       isAllowedImageType() &&
+                       maxSize(10 * 1024 * 1024);
+
+      // Keine Updates/Deletes
+      allow update, delete: if false;
+    }
+
+    // ========== CATCH-ALL ==========
+    // Alles andere ist verboten
+    match /{allPaths=**} {
+      allow read, write: if false;
+    }
+  }
+}

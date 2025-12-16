@@ -1,0 +1,31 @@
+{
+  "name": "schadens-chat-app",
+  "version": "1.0.0",
+  "description": "SchadensChat - Foto machen, Angebote erhalten!",
+  "main": "index.html",
+  "scripts": {
+    "start": "npx serve www",
+    "build": "npm run build:web",
+    "build:web": "rm -rf www && mkdir -p www && cp -r css js img i18n index.html werkstatt.html offline.html manifest.json sw.js www/",
+    "sync": "npm run build:web && npx cap sync",
+    "ios": "npm run sync && npx cap open ios",
+    "android": "npm run sync && npx cap open android",
+    "ios:run": "npm run sync && npx cap run ios",
+    "android:run": "npm run sync && npx cap run android",
+    "deploy:web": "firebase deploy --only hosting"
+  },
+  "keywords": [
+    "pwa",
+    "mobile",
+    "damage-report",
+    "workshop"
+  ],
+  "author": "SchadensChat Team",
+  "license": "MIT",
+  "dependencies": {
+    "@capacitor/android": "^8.0.0",
+    "@capacitor/cli": "^8.0.0",
+    "@capacitor/core": "^8.0.0",
+    "@capacitor/ios": "^8.0.0"
+  }
+}

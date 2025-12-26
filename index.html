@@ -1,5 +1,5 @@
 <!DOCTYPE html>
-<html lang="de">
+<html lang="de" dir="ltr">
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no, viewport-fit=cover">
@@ -125,28 +125,28 @@
                             Foto machen, Angebote erhalten!
                         </p>
 
-                        <button class="btn btn-primary btn-lg btn-block btn-glow" onclick="App.navigateTo('photo')">
-                            <svg class="icon icon-lg"><use href="#icon-camera"></use></svg>
+                        <button class="btn btn-primary btn-lg btn-block btn-glow" onclick="App.navigateTo('photo')" aria-label="Schaden melden - Foto aufnehmen">
+                            <svg class="icon icon-lg" aria-hidden="true"><use href="#icon-camera"></use></svg>
                             <span data-i18n="startButton">Schaden melden</span>
                         </button>
                     </div>
 
                     <!-- Meine Anfragen -->
-                    <button class="btn btn-glass btn-block animate-bounce-in" style="animation-delay: 0.4s;" onclick="App.navigateTo('requests')">
-                        <svg class="icon icon-md"><use href="#icon-clipboard"></use></svg>
+                    <button class="btn btn-glass btn-block animate-bounce-in" style="animation-delay: 0.4s;" onclick="App.navigateTo('requests')" aria-label="Meine Anfragen anzeigen">
+                        <svg class="icon icon-md" aria-hidden="true"><use href="#icon-clipboard"></use></svg>
                         <span data-i18n="myRequests">Meine Anfragen</span>
                     </button>
 
                     <!-- Login/Profile Buttons -->
                     <div class="animate-bounce-in" style="animation-delay: 0.45s; margin-top: var(--space-md);">
                         <!-- Login Button (visible when not logged in) -->
-                        <button id="nav-login-btn" class="btn btn-glass btn-block" onclick="App.navigateTo('login')">
-                            <svg class="icon icon-md"><use href="#icon-lock"></use></svg>
+                        <button id="nav-login-btn" class="btn btn-glass btn-block" onclick="App.navigateTo('login')" aria-label="Anmelden mit Telefonnummer">
+                            <svg class="icon icon-md" aria-hidden="true"><use href="#icon-lock"></use></svg>
                             <span>Anmelden</span>
                         </button>
                         <!-- Profile Button (hidden, visible when logged in) -->
-                        <button id="nav-profile-btn" class="btn btn-glass btn-block hidden" onclick="App.navigateTo('profile')">
-                            <svg class="icon icon-md"><use href="#icon-user"></use></svg>
+                        <button id="nav-profile-btn" class="btn btn-glass btn-block hidden" onclick="App.navigateTo('profile')" aria-label="Mein Profil anzeigen">
+                            <svg class="icon icon-md" aria-hidden="true"><use href="#icon-user"></use></svg>
                             <span>Mein Profil</span>
                         </button>
                     </div>

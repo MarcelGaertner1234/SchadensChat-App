@@ -5,6 +5,7 @@
   "main": "index.html",
   "scripts": {
     "start": "npx serve www",
+    "server": "npx serve . -l 8000",
     "build": "npm run build:web",
     "build:web": "rm -rf www && mkdir -p www && cp -r css js img i18n index.html werkstatt.html offline.html manifest.json sw.js www/",
     "sync": "npm run build:web && npx cap sync",
@@ -13,7 +14,17 @@
     "ios:run": "npm run sync && npx cap run ios",
     "android:run": "npm run sync && npx cap run android",
     "deploy:web": "firebase deploy --only hosting",
-    "generate:icons": "node scripts/generate-icons.js"
+    "generate:icons": "node scripts/generate-icons.js",
+    "test": "npm run test:all",
+    "test:all": "npx playwright test tests/integration tests/smoke --workers=1",
+    "test:integration": "npx playwright test tests/integration --workers=1",
+    "test:smoke": "npx playwright test tests/smoke --workers=1",
+    "test:e2e": "npx playwright test tests/e2e --workers=1",
+    "test:pwa": "npx playwright test tests/pwa --workers=1",
+    "test:headed": "npx playwright test --headed --workers=1",
+    "test:debug": "npx playwright test --debug --workers=1",
+    "test:report": "npx playwright show-report",
+    "emulators": "firebase emulators:start --only firestore,auth,storage --project demo-test"
   },
   "keywords": [
     "pwa",
@@ -30,6 +41,7 @@
     "@capacitor/ios": "^8.0.0"
   },
   "devDependencies": {
+    "@playwright/test": "^1.57.0",
     "sharp": "^0.34.5"
   }
 }

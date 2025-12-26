@@ -7,84 +7,131 @@
  * - onNewMessage: Benachrichtigt über neue Chat-Nachrichten
  * - onOfferAccepted: Benachrichtigt Werkstatt über Annahme
  * - cleanupOldRequests: Löscht alte abgeschlossene Anfragen (Scheduled)
+ * - registerFCMToken: Registriert FCM-Token für Push-Benachrichtigungen
+ * - getVapidPublicKey: Gibt VAPID Public Key für Web Push zurück
  */
 
 const functions = require("firebase-functions");
 const {defineSecret} = require("firebase-functions/params");
 const admin = require("firebase-admin");
-const webpush = require("web-push");
 
 // Initialize Firebase Admin
 admin.initializeApp();
 
 const db = admin.firestore();
+const messaging = admin.messaging();
 
-// VAPID Keys als Firebase Secrets definieren
+// VAPID Keys als Firebase Secrets definieren (für Legacy Web Push & getVapidPublicKey)
 const vapidPublicKey = defineSecret("VAPID_PUBLIC_KEY");
-const vapidPrivateKey = defineSecret("VAPID_PRIVATE_KEY");
-const VAPID_SUBJECT = "mailto:info@schadens-chat.de";
-
-// Web Push wird lazy initialisiert (bei erstem Aufruf)
-let webpushInitialized = false;
-function initWebPush() {
-  if (!webpushInitialized) {
-    webpush.setVapidDetails(
-      VAPID_SUBJECT,
-      vapidPublicKey.value(),
-      vapidPrivateKey.value()
-    );
-    webpushInitialized = true;
-  }
-}
 
 // ========== HELPER FUNCTIONS ==========
 
 /**
- * Sendet Push-Benachrichtigung an alle Subscriptions eines Users
+ * Sendet FCM-Benachrichtigung an alle Tokens eines Users
  * @param {string} userId - User ID oder Telefonnummer
  * @param {object} payload - Notification payload
  */
-async function sendPushToUser(userId, payload) {
+async function sendFCMToUser(userId, payload) {
   try {
-    // Lazy init webpush mit Secrets
-    initWebPush();
-
-    const subscriptions = await db.collection("pushSubscriptions")
+    // FCM-Tokens für diesen User abrufen
+    const tokensSnapshot = await db.collection("fcmTokens")
       .where("userId", "==", userId)
       .get();
 
-    if (subscriptions.empty) {
-      console.log(`No subscriptions found for user: ${userId}`);
+    if (tokensSnapshot.empty) {
+      console.log(`No FCM tokens found for user: ${userId}`);
       return;
     }
 
-    const notifications = subscriptions.docs.map(async (doc) => {
-      const subscription = doc.data().subscription;
-      try {
-        await webpush.sendNotification(subscription, JSON.stringify(payload));
-        console.log(`Push sent to ${doc.id}`);
-      } catch (error) {
-        console.error(`Push failed for ${doc.id}:`, error.message);
-        // Subscription ungültig? Löschen
-        if (error.statusCode === 404 || error.statusCode === 410) {
-          await doc.ref.delete();
-          console.log(`Deleted invalid subscription: ${doc.id}`);
-        }
-      }
-    });
+    const tokens = tokensSnapshot.docs.map((doc) => doc.data().token);
 
-    await Promise.all(notifications);
+    if (tokens.length === 0) {
+      console.log(`No valid tokens for user: ${userId}`);
+      return;
+    }
+
+    // FCM Multicast Message erstellen
+    const message = {
+      notification: {
+        title: payload.title,
+        body: payload.body,
+      },
+      data: {
+        type: payload.data?.type || "notification",
+        requestId: payload.data?.requestId || "",
+        offerId: payload.data?.offerId || "",
+        messageId: payload.data?.messageId || "",
+        url: payload.data?.url || "",
+        tag: payload.tag || "schadens-chat",
+        requireInteraction: String(payload.requireInteraction || false),
+      },
+      webpush: {
+        notification: {
+          icon: payload.icon || "/schadens-chat-app/img/icon-192.png",
+          badge: payload.badge || "/schadens-chat-app/img/badge-72.png",
+          tag: payload.tag || "schadens-chat",
+          requireInteraction: payload.requireInteraction || false,
+        },
+        fcmOptions: {
+          link: payload.data?.url || "/schadens-chat-app/",
+        },
+      },
+      android: {
+        notification: {
+          icon: "notification_icon",
+          color: "#1e3a5f",
+          channelId: "schadens-chat-default",
+        },
+        priority: "high",
+      },
+      apns: {
+        payload: {
+          aps: {
+            badge: 1,
+            sound: "default",
+          },
+        },
+      },
+      tokens: tokens,
+    };
+
+    // Multicast senden
+    const response = await messaging.sendEachForMulticast(message);
+
+    console.log(`FCM sent: ${response.successCount} success, ${response.failureCount} failures`);
+
+    // Ungültige Tokens entfernen
+    if (response.failureCount > 0) {
+      const tokensToDelete = [];
+      response.responses.forEach((resp, idx) => {
+        if (!resp.success) {
+          const errorCode = resp.error?.code;
+          if (errorCode === "messaging/registration-token-not-registered" ||
+              errorCode === "messaging/invalid-registration-token") {
+            tokensToDelete.push(tokensSnapshot.docs[idx].ref);
+          }
+        }
+      });
+
+      // Ungültige Tokens löschen
+      if (tokensToDelete.length > 0) {
+        const batch = db.batch();
+        tokensToDelete.forEach((ref) => batch.delete(ref));
+        await batch.commit();
+        console.log(`Deleted ${tokensToDelete.length} invalid tokens`);
+      }
+    }
   } catch (error) {
-    console.error("sendPushToUser error:", error);
+    console.error("sendFCMToUser error:", error);
   }
 }
 
 /**
- * Sendet Push an alle Werkstätten in einem Radius
+ * Sendet FCM an alle Werkstätten in einem Radius
  * @param {object} location - {lat, lng, zip}
  * @param {object} payload - Notification payload
  */
-async function sendPushToNearbyWorkshops(location, payload) {
+async function sendFCMToNearbyWorkshops(location, payload) {
   try {
     // Vereinfacht: Alle Werkstätten mit gleicher PLZ-Präfix
     const zipPrefix = location.zip ? location.zip.substring(0, 2) : null;
@@ -103,13 +150,13 @@ async function sendPushToNearbyWorkshops(location, payload) {
     }
 
     const notifications = workshops.docs.map(async (doc) => {
-      await sendPushToUser(doc.id, payload);
+      await sendFCMToUser(doc.id, payload);
     });
 
     await Promise.all(notifications);
     console.log(`Notified ${workshops.docs.length} workshops`);
   } catch (error) {
-    console.error("sendPushToNearbyWorkshops error:", error);
+    console.error("sendFCMToNearbyWorkshops error:", error);
   }
 }
 
@@ -165,7 +212,6 @@ function translate(key, lang = "de", params = {}) {
  */
 exports.onNewRequest = functions
   .region("europe-west1")
-  .runWith({secrets: [vapidPublicKey, vapidPrivateKey]})
   .firestore
   .document("requests/{requestId}")
   .onCreate(async (snap, context) => {
@@ -184,19 +230,16 @@ exports.onNewRequest = functions
       icon: "/schadens-chat-app/img/icon-192.png",
       badge: "/schadens-chat-app/img/badge-72.png",
       tag: `new-request-${requestId}`,
+      requireInteraction: true,
       data: {
         type: "new_request",
         requestId: requestId,
         url: `/schadens-chat-app/werkstatt.html#request-${requestId}`,
       },
-      actions: [
-        {action: "view", title: "Ansehen"},
-        {action: "dismiss", title: "Später"},
-      ],
     };
 
-    // Push an Werkstätten senden
-    await sendPushToNearbyWorkshops(request.location, payload);
+    // FCM an Werkstätten senden
+    await sendFCMToNearbyWorkshops(request.location, payload);
 
     // Analytics Event speichern
     await db.collection("analytics").add({
@@ -216,7 +259,6 @@ exports.onNewRequest = functions
  */
 exports.onNewOffer = functions
   .region("europe-west1")
-  .runWith({secrets: [vapidPublicKey, vapidPrivateKey]})
   .firestore
   .document("requests/{requestId}/offers/{offerId}")
   .onCreate(async (snap, context) => {
@@ -234,9 +276,12 @@ exports.onNewOffer = functions
 
     const request = requestDoc.data();
     const customerPhone = request.contact?.phone;
+    const customerId = request.customerId;
 
-    if (!customerPhone) {
-      console.error("No customer phone for request:", requestId);
+    // User-ID für FCM bestimmen
+    const userId = customerId || customerPhone;
+    if (!userId) {
+      console.error("No customer ID for request:", requestId);
       return null;
     }
 
@@ -263,14 +308,10 @@ exports.onNewOffer = functions
         offerId: offerId,
         url: `/schadens-chat-app/#offers-${requestId}`,
       },
-      actions: [
-        {action: "view", title: "Ansehen"},
-        {action: "dismiss", title: "Später"},
-      ],
     };
 
-    // Push an Kunden senden
-    await sendPushToUser(customerPhone, payload);
+    // FCM an Kunden senden
+    await sendFCMToUser(userId, payload);
 
     // Request-Status aktualisieren
     await db.collection("requests").doc(requestId).update({
@@ -287,7 +328,6 @@ exports.onNewOffer = functions
  */
 exports.onNewMessage = functions
   .region("europe-west1")
-  .runWith({secrets: [vapidPublicKey, vapidPrivateKey]})
   .firestore
   .document("requests/{requestId}/messages/{messageId}")
   .onCreate(async (snap, context) => {
@@ -312,7 +352,7 @@ exports.onNewMessage = functions
       senderName = request.contact?.name || "Kunde";
     } else {
       // Nachricht von Werkstatt → an Kunden
-      recipientId = request.contact?.phone;
+      recipientId = request.customerId || request.contact?.phone;
       // Werkstatt-Name holen
       if (message.senderId) {
         const ws = await db.collection("workshops").doc(message.senderId).get();
@@ -333,16 +373,18 @@ exports.onNewMessage = functions
       icon: "/schadens-chat-app/img/icon-192.png",
       badge: "/schadens-chat-app/img/badge-72.png",
       tag: `chat-${requestId}`,
-      renotify: true,
       data: {
         type: "new_message",
         requestId: requestId,
         messageId: messageId,
+        url: message.senderType === "customer" ?
+          `/schadens-chat-app/werkstatt.html#chat-${requestId}` :
+          `/schadens-chat-app/#chat-${requestId}`,
       },
     };
 
-    // Push senden
-    await sendPushToUser(recipientId, payload);
+    // FCM senden
+    await sendFCMToUser(recipientId, payload);
 
     return null;
   });
@@ -353,7 +395,6 @@ exports.onNewMessage = functions
  */
 exports.onOfferAccepted = functions
   .region("europe-west1")
-  .runWith({secrets: [vapidPublicKey, vapidPrivateKey]})
   .firestore
   .document("requests/{requestId}/offers/{offerId}")
   .onUpdate(async (change, context) => {
@@ -388,15 +429,12 @@ exports.onOfferAccepted = functions
         type: "offer_accepted",
         requestId: requestId,
         offerId: offerId,
+        url: `/schadens-chat-app/werkstatt.html#request-${requestId}`,
       },
-      actions: [
-        {action: "view", title: "Details"},
-        {action: "chat", title: "Chat öffnen"},
-      ],
     };
 
-    // Push an Werkstatt senden
-    await sendPushToUser(after.workshopId, payload);
+    // FCM an Werkstatt senden
+    await sendFCMToUser(after.workshopId, payload);
 
     // Request aktualisieren
     await db.collection("requests").doc(requestId).update({
@@ -462,56 +500,148 @@ exports.cleanupOldRequests = functions
   });
 
 /**
- * Scheduled: Push-Subscriptions aufräumen
+ * Scheduled: Ungültige FCM-Tokens aufräumen
  * Läuft wöchentlich
  */
-exports.cleanupInvalidSubscriptions = functions
+exports.cleanupInvalidFCMTokens = functions
   .region("europe-west1")
-  .runWith({secrets: [vapidPublicKey, vapidPrivateKey]})
   .pubsub
   .schedule("0 4 * * 0") // Sonntag 4:00 Uhr
   .timeZone("Europe/Berlin")
   .onRun(async () => {
-    console.log("Cleaning up invalid push subscriptions...");
+    console.log("Cleaning up invalid FCM tokens...");
 
-    // Init webpush mit Secrets
-    initWebPush();
-
-    const subscriptions = await db.collection("pushSubscriptions").get();
+    const tokensSnapshot = await db.collection("fcmTokens").get();
     let cleaned = 0;
 
-    for (const doc of subscriptions.docs) {
-      const sub = doc.data().subscription;
+    // Tokens in Batches verarbeiten
+    const batch = db.batch();
+    const invalidTokens = [];
+
+    for (const doc of tokensSnapshot.docs) {
+      const token = doc.data().token;
       try {
-        // Test-Push senden
-        await webpush.sendNotification(sub, JSON.stringify({
-          title: "Connection test",
-          body: "This is a test",
-          tag: "test",
-          silent: true,
-        }));
+        // Dry-run: Token validieren ohne zu senden
+        await messaging.send({
+          token: token,
+          notification: {
+            title: "Test",
+          },
+        }, true); // dryRun = true
       } catch (error) {
-        if (error.statusCode === 404 || error.statusCode === 410) {
-          await doc.ref.delete();
-          cleaned++;
+        if (error.code === "messaging/registration-token-not-registered" ||
+            error.code === "messaging/invalid-registration-token") {
+          invalidTokens.push(doc.ref);
         }
       }
     }
 
-    console.log(`Cleaned up ${cleaned} invalid subscriptions`);
+    // Ungültige Tokens löschen
+    invalidTokens.forEach((ref) => batch.delete(ref));
+    if (invalidTokens.length > 0) {
+      await batch.commit();
+      cleaned = invalidTokens.length;
+    }
+
+    console.log(`Cleaned up ${cleaned} invalid FCM tokens`);
     return null;
   });
 
 // ========== CALLABLE FUNCTIONS ==========
 
 /**
- * Callable: Push-Subscription registrieren
+ * Callable: FCM-Token registrieren
+ */
+exports.registerFCMToken = functions
+  .region("europe-west1")
+  .https
+  .onCall(async (data, context) => {
+    const {userId, token, platform} = data;
+
+    if (!userId || !token) {
+      throw new functions.https.HttpsError(
+        "invalid-argument",
+        "userId and token required",
+      );
+    }
+
+    try {
+      // Prüfen ob Token bereits existiert
+      const existingToken = await db.collection("fcmTokens")
+        .where("token", "==", token)
+        .get();
+
+      if (!existingToken.empty) {
+        // Token existiert - Update userId falls geändert
+        const docRef = existingToken.docs[0].ref;
+        await docRef.update({
+          userId: userId,
+          platform: platform || "web",
+          updatedAt: admin.firestore.FieldValue.serverTimestamp(),
+        });
+        console.log(`FCM token updated for user: ${userId}`);
+      } else {
+        // Neues Token erstellen
+        await db.collection("fcmTokens").add({
+          userId: userId,
+          token: token,
+          platform: platform || "web",
+          createdAt: admin.firestore.FieldValue.serverTimestamp(),
+          updatedAt: admin.firestore.FieldValue.serverTimestamp(),
+          userAgent: context.rawRequest?.headers?.["user-agent"] || "unknown",
+        });
+        console.log(`FCM token registered for user: ${userId}`);
+      }
+
+      return {success: true};
+    } catch (error) {
+      console.error("registerFCMToken error:", error);
+      throw new functions.https.HttpsError("internal", error.message);
+    }
+  });
+
+/**
+ * Callable: FCM-Token löschen (bei Logout)
+ */
+exports.deleteFCMToken = functions
+  .region("europe-west1")
+  .https
+  .onCall(async (data, context) => {
+    const {token} = data;
+
+    if (!token) {
+      throw new functions.https.HttpsError(
+        "invalid-argument",
+        "token required",
+      );
+    }
+
+    try {
+      const tokensSnapshot = await db.collection("fcmTokens")
+        .where("token", "==", token)
+        .get();
+
+      if (!tokensSnapshot.empty) {
+        const batch = db.batch();
+        tokensSnapshot.docs.forEach((doc) => batch.delete(doc.ref));
+        await batch.commit();
+        console.log("FCM token deleted");
+      }
+
+      return {success: true};
+    } catch (error) {
+      console.error("deleteFCMToken error:", error);
+      throw new functions.https.HttpsError("internal", error.message);
+    }
+  });
+
+/**
+ * Callable: Legacy Push-Subscription registrieren (für Kompatibilität)
  */
 exports.registerPushSubscription = functions
   .region("europe-west1")
   .https
   .onCall(async (data, context) => {
-    // User muss nicht authentifiziert sein (Phone-basiert)
     const {userId, subscription} = data;
 
     if (!userId || !subscription) {
@@ -581,12 +711,26 @@ exports.registerWorkshop = functions
     }
   });
 
-// Export VAPID public key für Client
+/**
+ * HTTP: VAPID public key für Client (Web Push Setup)
+ */
 exports.getVapidPublicKey = functions
+  .region("europe-west1")
+  .runWith({secrets: [vapidPublicKey]})
+  .https
+  .onCall(async (data, context) => {
+    return {vapidPublicKey: vapidPublicKey.value()};
+  });
+
+/**
+ * HTTP Request version of getVapidPublicKey (for CORS)
+ */
+exports.getVapidPublicKeyHttp = functions
   .region("europe-west1")
   .runWith({secrets: [vapidPublicKey]})
   .https
   .onRequest((req, res) => {
     res.set("Access-Control-Allow-Origin", "*");
+    res.set("Access-Control-Allow-Methods", "GET");
     res.json({vapidPublicKey: vapidPublicKey.value()});
   });

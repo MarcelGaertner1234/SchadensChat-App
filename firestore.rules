@@ -157,7 +157,7 @@ service cloud.firestore {
       allow delete: if isUser(userId);
     }
 
-    // ========== PUSH SUBSCRIPTIONS ==========
+    // ========== PUSH SUBSCRIPTIONS (Legacy) ==========
 
     match /pushSubscriptions/{subId} {
       // Nur der Besitzer kann lesen
@@ -167,6 +167,19 @@ service cloud.firestore {
       allow create: if isAuth() && request.resource.data.userId == request.auth.uid;
 
       // Nur der Besitzer kann aktualisieren/löschen
+      allow update, delete: if isAuth() && resource.data.userId == request.auth.uid;
+    }
+
+    // ========== FCM TOKENS (Firebase Cloud Messaging) ==========
+
+    match /fcmTokens/{tokenId} {
+      // Nutzer kann eigene Tokens lesen
+      allow read: if isAuth() && resource.data.userId == request.auth.uid;
+
+      // Authentifizierte User können Tokens erstellen
+      allow create: if isAuth() && request.resource.data.userId == request.auth.uid;
+
+      // Nutzer kann eigene Tokens aktualisieren/löschen
       allow update, delete: if isAuth() && resource.data.userId == request.auth.uid;
     }
 

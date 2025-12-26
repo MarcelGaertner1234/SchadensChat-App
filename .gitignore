@@ -39,3 +39,7 @@ ios/App/Pods/
 **/secrets/
 *.pem
 *.key
+
+# Test outputs
+playwright-report/
+test-results/

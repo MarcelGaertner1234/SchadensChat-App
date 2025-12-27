@@ -4,100 +4,125 @@ Dieses Dokument gibt Claude Code alle wichtigen Informationen zur SchadensChat P
 
 ---
 
-## Aktueller Status (2024-12-16)
+## Aktueller Status (2024-12-27)
 
-### ✅ ERLEDIGT - Business/Corporate Redesign
-Das Design wurde von "verspielt/neon" zu "Business/Corporate" umgestaltet:
+### ERLEDIGT - UX Verbesserungen
+- **Bild-Komprimierung:** `compressImage()` in `js/app.js` - 70% kleinere Uploads
+- **ARIA Accessibility:** Labels auf Buttons, aria-hidden auf SVGs, role="alert" auf Toasts
+- **Firebase Hosting:** https://schadens-chat-app.web.app
+- **Commit:** `e6a0279 ux: Add image compression and ARIA accessibility labels`
 
-**Farbänderungen:**
-```css
-/* ALT (Neon/Playful) */
---primary: #667eea;
---accent: #f093fb;
+### ERLEDIGT - Android Build (Play Store Ready)
+- **Signed Release AAB:** `android/app/build/outputs/bundle/release/app-release.aab` (3.0 MB)
+- **Signed Release APK:** `android/app/build/outputs/apk/release/app-release.apk` (3.1 MB)
+- **Getestet:** Android Emulator (SchadensChat AVD, Android 14, Pixel 6)
 
-/* NEU (Business Blue) */
---primary: #1e3a5f;      /* Dark Navy Blue */
---primary-dark: #0f2744;
---primary-light: #4a6fa5;
---secondary: #2d3748;
---accent: #3182ce;
+### ERLEDIGT - iOS Build (App Store Ready)
+- **Release Archive:** `ios/App/build/SchadensChat.xcarchive` (9.1 MB)
+- **Getestet:** iPhone 17 Pro Simulator
+- **Status:** Signing in Xcode erforderlich fuer App Store Upload
+
+---
+
+## WICHTIG - Android Keystore Backup
+
+**DIESE DATEIEN SICHERN! Ohne sie keine App-Updates moeglich:**
+
+```
+android/schadenschat-release.keystore
+android/keystore.properties
 ```
 
-**Entfernt:**
-- Alle Emoji-Icons → ersetzt durch SVG Icon Sprite System
-- Bouncy Animations (bounceIn, float, confetti, heroGlow, particleFloat)
-- Übertriebene Glasmorphism-Effekte
-- Neon Gradients
-
-**Commits:**
-- `14a0e41` - style: Business/Corporate redesign
-- `4e8df50` - feat: App Store deployment preparation
+| Info | Wert |
+|------|------|
+| **Datei** | `android/schadenschat-release.keystore` |
+| **Alias** | `schadenschat` |
+| **Passwort** | `schadenschat2024` |
+| **Gueltigkeit** | 10.000 Tage (~27 Jahre) |
 
 ---
 
-### ✅ ERLEDIGT - App Store Vorbereitung
+## Quick Commands
 
-**Icons generiert:**
-- 15 iOS Icons (20px - 1024px) in `ios/App/App/Assets.xcassets/AppIcon.appiconset/`
-- 15 Android Icons (48px - 192px) in `android/app/src/main/res/mipmap-*/`
-- Icon Generator Script: `scripts/generate-icons.js`
+### Development
+```bash
+npm run start              # Server starten (localhost:8000)
+npm run build:web          # Web Assets nach www/ kopieren
+```
 
-**Capacitor Config aktualisiert:**
-- Background Color: `#1e3a5f` (neu)
-- Splash Screen Color: `#1e3a5f`
-- Status Bar Color: `#1e3a5f`
+### Mobile Builds
 
-**Build Status:**
-- iOS Build: ✅ ERFOLGREICH (getestet mit xcodebuild)
-- Android Build: ⏳ Bereit (Gradle Download timeout, manuell testen)
+#### Android
+```bash
+# Web Assets synchronisieren
+npx cap sync android
+
+# Debug APK bauen
+cd android && JAVA_HOME=/opt/homebrew/opt/openjdk@21 ./gradlew assembleDebug
+
+# Release AAB fuer Play Store
+cd android && JAVA_HOME=/opt/homebrew/opt/openjdk@21 ./gradlew bundleRelease
+
+# Release APK
+cd android && JAVA_HOME=/opt/homebrew/opt/openjdk@21 ./gradlew assembleRelease
+
+# Auf Emulator installieren
+adb install android/app/build/outputs/apk/debug/app-debug.apk
+```
+
+#### iOS
+```bash
+# Web Assets synchronisieren
+npx cap sync ios
+
+# Xcode oeffnen
+open ios/App/App.xcodeproj
+
+# Simulator Build (CLI)
+cd ios/App && xcodebuild -project App.xcodeproj -scheme App -configuration Debug -destination 'platform=iOS Simulator,name=iPhone 17 Pro' build
+
+# Archive fuer App Store
+cd ios/App && xcodebuild -project App.xcodeproj -scheme App -configuration Release archive -archivePath build/SchadensChat.xcarchive
+```
+
+### Firebase
+```bash
+firebase deploy --only hosting
+firebase deploy --only firestore:rules
+firebase deploy --only storage:rules
+firebase deploy --only functions
+firebase emulators:start --only firestore,auth
+```
 
 ---
 
-### 🔲 OFFEN - Nächste Schritte für App Store
+## Naechste Schritte - App Store Release
 
-#### iOS App Store
-1. **Apple Developer Account** erstellen ($99/Jahr)
-   - developer.apple.com
-   - App ID registrieren: `com.schadenschat.app`
+### Google Play Store
+1. **Account:** Google Play Developer Account ($25 einmalig)
+2. **Upload:** `app-release.aab` in Play Console hochladen
+3. **Store Listing:** Screenshots, Beschreibung, Datenschutz-URL
 
+### Apple App Store
+1. **Account:** Apple Developer Program ($99/Jahr)
 2. **In Xcode:**
-   ```bash
-   npm run ios  # Öffnet Xcode
-   ```
-   - Signing & Capabilities konfigurieren
-   - Team auswählen
-   - Product → Archive → Distribute App
-
-3. **App Store Connect:**
-   - Screenshots hochladen (6.7", 6.5", 5.5")
-   - Beschreibung, Keywords
-   - Datenschutz-URL
-
-#### Google Play Store
-1. **Google Play Developer Account** erstellen ($25 einmalig)
-   - play.google.com/console
-
-2. **Keystore erstellen:**
-   ```bash
-   keytool -genkey -v -keystore schadens-chat.keystore \
-     -alias schadens-chat -keyalg RSA -keysize 2048 -validity 10000
-   ```
-
-3. **In Android Studio:**
-   ```bash
-   npm run android  # Öffnet Android Studio
-   ```
-   - Build → Generate Signed Bundle/APK
-   - AAB (Android App Bundle) für Play Store
+   - Target "App" > Signing & Capabilities
+   - Team auswaehlen (Apple Developer Account)
+   - "Automatically manage signing" aktivieren
+3. **Archive:** Product > Archive > Distribute App
 
 ---
 
-## Projekt-Übersicht
+## Projekt-Uebersicht
 
-**SchadensChat** ist eine mobile-first Progressive Web App (PWA) zur Vermittlung von Fahrzeugschäden zwischen Kunden und Werkstätten.
+**SchadensChat** ist eine mobile-first Progressive Web App (PWA) zur Vermittlung von Fahrzeugschaeden zwischen Kunden und Werkstaetten.
 
-**Repository:** https://github.com/MarcelGaertner1234/SchadensChat-App.git
-**Live URL:** https://marcelgaertner1234.github.io/SchadensChat-App/
+| Info | Wert |
+|------|------|
+| **Repository** | https://github.com/MarcelGaertner1234/SchadensChat-App.git |
+| **Live URL** | https://marcelgaertner1234.github.io/SchadensChat-App/ |
+| **Firebase Hosting** | https://schadens-chat-app.web.app |
+| **Bundle ID** | `com.schadenschat.app` |
 
 ---
 
@@ -107,7 +132,7 @@ Das Design wurde von "verspielt/neon" zu "Business/Corporate" umgestaltet:
 |-------|-------------|
 | **Frontend** | Vanilla JS, HTML5, CSS3 (keine Frameworks!) |
 | **Backend** | Firebase (Firestore, Auth, Storage, Functions) |
-| **Hosting** | GitHub Pages (Auto-Deploy bei Push) |
+| **Hosting** | GitHub Pages + Firebase Hosting |
 | **Mobile** | Capacitor 8.0 (iOS/Android Wrapper) |
 | **PWA** | Service Worker, Manifest, Offline-Support |
 | **Icons** | SVG Sprite System (keine Emojis!) |
@@ -126,79 +151,40 @@ schadens-chat-app/
 ├── sw.js                   # Service Worker
 ├── capacitor.config.json   # Capacitor Config (iOS/Android)
 ├── js/
-│   ├── app.js              # Kunden-App Logik
-│   ├── workshop.js         # Werkstatt-Portal Logik (Hauptdatei!)
+│   ├── app.js              # Kunden-App Logik (inkl. compressImage!)
+│   ├── workshop.js         # Werkstatt-Portal Logik
 │   ├── auth.js             # Firebase Auth
 │   ├── firebase-config.js  # Firebase Initialisierung
 │   ├── i18n.js             # Internationalisierung (DE/EN/TR/RU)
 │   ├── notifications.js    # Push Notifications
-│   ├── subscription.js     # Abo-System (Trial, Starter, Pro, Enterprise)
-│   ├── request-manager.js  # Anfragen-Verwaltung
-│   └── workshop-requests.js # Werkstatt-spezifische Anfragen
+│   └── subscription.js     # Abo-System
 ├── css/
-│   └── mobile.css          # Hauptstyles (ehemals workshop.css)
-├── img/
-│   ├── icon.svg            # App Icon (512x512, Business Blue)
-│   └── icon-192.svg        # App Icon klein (192x192)
-├── scripts/
-│   └── generate-icons.js   # Icon Generator für iOS/Android
-├── firestore.rules         # Firestore Security Rules
-├── storage.rules           # Storage Security Rules
-├── firebase.json           # Firebase Config
-├── functions/              # Cloud Functions
+│   └── mobile.css          # Hauptstyles
 ├── android/                # Capacitor Android Build
-│   └── app/src/main/res/mipmap-*/ # Android Icons
+│   ├── app/build.gradle    # Signing Config
+│   ├── keystore.properties # Keystore Credentials (gitignored!)
+│   └── schadenschat-release.keystore # Signing Key (gitignored!)
 ├── ios/                    # Capacitor iOS Build
-│   └── App/App/Assets.xcassets/AppIcon.appiconset/ # iOS Icons
+│   └── App/
+│       ├── App.xcodeproj   # Xcode Projekt
+│       └── build/          # Archive Output
 └── www/                    # Capacitor Web Assets (auto-generiert)
-```
-
----
-
-## Quick Commands
-
-### Development
-```bash
-npm run start          # Server starten (localhost:8000)
-npm run build:web      # Web Assets nach www/ kopieren
-```
-
-### Mobile Development
-```bash
-npm run generate:icons # Icons für iOS/Android generieren
-npm run sync           # Web Assets + Capacitor sync
-npm run ios            # Xcode öffnen
-npm run android        # Android Studio öffnen
-```
-
-### Deployment
-```bash
-git add . && git commit -m "feat: ..." && git push
-# Auto-Deploy zu GitHub Pages in ~2 Min
-```
-
-### Firebase
-```bash
-firebase deploy --only firestore:rules
-firebase deploy --only storage:rules
-firebase deploy --only functions
-firebase emulators:start --only firestore,auth
 ```
 
 ---
 
 ## SVG Icon System
 
-**WICHTIG:** Keine Emojis mehr verwenden! Stattdessen SVG Icons:
+**WICHTIG:** Keine Emojis verwenden! Stattdessen SVG Icons:
 
 ```html
 <!-- Icon einbinden -->
 <svg class="icon icon-lg"><use href="#icon-car"></use></svg>
 
-<!-- Größen: icon-sm (16px), icon-md (20px), icon-lg (24px), icon-xl (32px) -->
+<!-- Groessen: icon-sm (16px), icon-md (20px), icon-lg (24px), icon-xl (32px) -->
 ```
 
-**Verfügbare Icons in index.html/werkstatt.html:**
+**Verfuegbare Icons:**
 `car`, `camera`, `clipboard`, `lock`, `user`, `zap`, `dollar`, `shield`, `sun`, `moon`, `image`, `lightbulb`, `check-circle`, `message`, `settings`, `arrow-left`, `arrow-right`, `check`, `wrench`, `smartphone`, `clock`
 
 ---
@@ -219,41 +205,23 @@ firebase emulators:start --only firestore,auth
 --danger: #e53e3e;
 --warning: #dd6b20;
 --info: #3182ce;
-
-/* Surfaces */
---surface: #f8fafc;
---surface-elevated: #ffffff;
---text-primary: #1a202c;
---text-secondary: #4a5568;
 ```
-
-### Komponenten
-- `.btn` - Buttons (btn-primary, btn-secondary, btn-danger)
-- `.card` - Karten
-- `.input-group` - Formular-Gruppe
-- `.toast` - Benachrichtigung
-- `.stat-card` - Statistik-Karte
-- `.tab-bar` - Bottom Navigation
-- `.badge` - Status-Badge
-
----
-
-## Abo-System (subscription.js)
-
-| Plan | Preis | Features |
-|------|-------|----------|
-| **Trial** | 0€ (14 Tage) | Alle Features |
-| **Starter** | 49€/Monat | 20 Anfragen/Monat |
-| **Professional** | 99€/Monat | 100 Anfragen/Monat |
-| **Enterprise** | 199€/Monat | Unlimited, Priority Support |
 
 ---
 
 ## Wichtige Patterns
 
+### Bild-Komprimierung (NEU!)
+```javascript
+// In js/app.js - automatisch bei Photo-Upload
+async compressImage(file, maxWidth = 1200, quality = 0.8) {
+    // Komprimiert auf max 1200px Breite, 80% JPEG Qualitaet
+    // Reduziert Upload-Groesse um ~70%
+}
+```
+
 ### Firebase Auth Check
 ```javascript
-// IMMER vor Firebase-Operationen
 await window.firebaseReady;
 if (!firebase.auth().currentUser) {
     Workshop.showLogin();
@@ -266,48 +234,24 @@ if (!firebase.auth().currentUser) {
 Workshop.showToast('Nachricht', 'success'); // success, error, info, warning
 ```
 
-### Modal Dialog (mit SVG Icons!)
-```javascript
-Workshop.showModal({
-    icon: '<svg class="icon icon-xl"><use href="#icon-shield"></use></svg>',
-    title: 'Titel',
-    text: 'Beschreibung',
-    confirmText: 'OK',
-    cancelText: 'Abbrechen',
-    onConfirm: () => {},
-    onCancel: () => {}
-});
-```
-
 ---
 
 ## Bekannte Issues
 
-1. **Service Worker Path** - Bei GitHub Pages muss der Pfad `/SchadensChat-App/sw.js` sein
+1. **Service Worker Path** - Bei GitHub Pages: `/SchadensChat-App/sw.js`
 2. **Firebase Auth Persistence** - LocalStorage wird verwendet
-3. **Mobile Viewport** - `safe-area-inset-*` für Notch-Geräte beachten
-4. **Android Gradle** - Bei Timeout manuell in Android Studio bauen
+3. **Mobile Viewport** - `safe-area-inset-*` fuer Notch-Geraete beachten
+4. **iOS Signing** - Apple Developer Account erforderlich fuer App Store
 
 ---
 
-## TODO - Noch ausstehend
+## Build-Outputs (aktuell)
 
-### Priorität 1 - App Store Release
-- [ ] Apple Developer Account ($99/Jahr)
-- [ ] Google Play Developer Account ($25)
-- [ ] App Store Screenshots erstellen
-- [ ] Store-Beschreibungen schreiben
-- [ ] Datenschutz-URL bereitstellen
-
-### Priorität 2 - Core Features
-- [ ] **Stripe Integration** - Echte Zahlungen für Abos
-- [ ] **Push Notifications** - FCM Setup vervollständigen
-- [ ] **Email-System** - Transaktionale Emails
-
-### Priorität 3 - Verbesserungen
-- [ ] **Foto-Upload optimieren** - Kompression, Progress
-- [ ] **Offline-Sync** - IndexedDB für Anfragen
-- [ ] **Analytics Dashboard** - Statistiken
+| Plattform | Datei | Groesse | Status |
+|-----------|-------|---------|--------|
+| **Android AAB** | `android/app/build/outputs/bundle/release/app-release.aab` | 3.0 MB | Signiert, Play Store ready |
+| **Android APK** | `android/app/build/outputs/apk/release/app-release.apk` | 3.1 MB | Signiert |
+| **iOS Archive** | `ios/App/build/SchadensChat.xcarchive` | 9.1 MB | Signing erforderlich |
 
 ---
 
@@ -315,9 +259,10 @@ Workshop.showModal({
 
 - **GitHub:** https://github.com/MarcelGaertner1234/SchadensChat-App
 - **Live Demo:** https://marcelgaertner1234.github.io/SchadensChat-App/
+- **Firebase Hosting:** https://schadens-chat-app.web.app
 - **Kunden-App:** .../index.html
 - **Werkstatt-Portal:** .../werkstatt.html
 
 ---
 
-_Version: 2.0 (2024-12-16) - Business Theme + App Store Prep_
+_Version: 3.0 (2024-12-27) - UX Improvements + Android/iOS Builds_

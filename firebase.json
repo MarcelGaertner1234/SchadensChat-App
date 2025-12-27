@@ -13,12 +13,11 @@
     ]
   },
   "hosting": {
-    "public": ".",
+    "public": "www",
     "ignore": [
       "firebase.json",
       "**/.*",
-      "**/node_modules/**",
-      "functions/**"
+      "**/node_modules/**"
     ],
     "rewrites": [
       {

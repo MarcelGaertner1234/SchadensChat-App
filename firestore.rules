@@ -80,9 +80,12 @@ service cloud.firestore {
                      (isWorkshop() && resource.data.status in ['new', 'pending', 'offers_received'])
                    );
 
-      // Jeder kann eine Anfrage erstellen (auch ohne Auth - Phone-Auth später)
-      allow create: if request.resource.data.status == 'new' &&
-                       request.resource.data.photos.size() >= 1;
+      // SECURITY: Auth required for request creation to prevent spam
+      // Previously allowed unauthenticated creates which enabled DoS attacks
+      allow create: if isAuth() &&
+                       request.resource.data.status == 'new' &&
+                       request.resource.data.photos.size() >= 1 &&
+                       request.resource.data.photos.size() <= 5;
 
       // Nur der Besitzer kann seine Anfrage aktualisieren
       // Oder Werkstatt wenn sie ein Angebot abgibt
@@ -134,8 +137,11 @@ service cloud.firestore {
     // ========== WORKSHOPS COLLECTION ==========
 
     match /workshops/{workshopId} {
-      // Jeder kann Werkstatt-Profile lesen (für Angebote-Anzeige)
-      allow read: if true;
+      // SECURITY: Only authenticated users can read workshop profiles
+      // This prevents unauthenticated enumeration of workshops
+      // Public fields (name, rating, location) are safe to expose
+      // Sensitive fields (email, phone, revenue) should be excluded via field-level rules
+      allow read: if isAuth();
 
       // Nur die Werkstatt selbst kann ihr Profil erstellen/bearbeiten
       allow create, update: if isUser(workshopId);

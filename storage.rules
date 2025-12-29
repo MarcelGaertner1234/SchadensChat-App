@@ -43,14 +43,17 @@ service firebase.storage {
     // ========== REQUESTS PHOTOS ==========
 
     match /requests/{requestId}/{fileName} {
-      // Jeder kann Fotos lesen (für Werkstatt-Ansicht)
-      allow read: if true;
+      // Authentifizierte User können Fotos lesen
+      // SECURITY: Removed public read to prevent enumeration
+      allow read: if isAuth();
 
-      // Jeder kann Fotos hochladen (Kunde ohne Auth möglich)
-      // Max 10 MB, nur Bilder
-      allow create: if isImage() &&
+      // SECURITY: Auth required for uploads to prevent DoS
+      // Max 5 MB (reduced from 10 MB), nur Bilder
+      // Rate limiting should be implemented via App Check
+      allow create: if isAuth() &&
+                       isImage() &&
                        isAllowedImageType() &&
-                       maxSize(10 * 1024 * 1024);
+                       maxSize(5 * 1024 * 1024);
 
       // Fotos können nicht überschrieben werden
       allow update: if false;
@@ -96,16 +99,19 @@ service firebase.storage {
     }
 
     // ========== TEMP UPLOADS ==========
-    // Für unauth Uploads (werden später via Cloud Function verschoben)
+    // SECURITY: Disabled unauthenticated uploads to prevent DoS
+    // All uploads now require authentication
 
     match /temp/{uploadId}/{fileName} {
       // Temporäre Dateien können nicht gelesen werden
       allow read: if false;
 
-      // Jeder kann temporär hochladen (Rate-Limiting via App Check)
-      allow create: if isImage() &&
+      // SECURITY: Auth required to prevent storage DoS attacks
+      // Previously allowed unauthenticated uploads which could exhaust quota
+      allow create: if isAuth() &&
+                       isImage() &&
                        isAllowedImageType() &&
-                       maxSize(10 * 1024 * 1024);
+                       maxSize(5 * 1024 * 1024);
 
       // Keine Updates/Deletes
       allow update, delete: if false;

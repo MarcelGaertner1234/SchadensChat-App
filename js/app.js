@@ -945,19 +945,25 @@ const App = {
             const createdAt = req.createdAt instanceof Date ? req.createdAt : new Date(req.createdAt);
             const date = createdAt.toLocaleDateString('de-DE');
 
+            // XSS Prevention: escape all user-provided data
+            const safeBrand = this.escapeHtml(req.vehicle.brand || 'Fahrzeug');
+            const safeModel = this.escapeHtml(req.vehicle.model || '');
+            const safeId = this.escapeHtml(req.id);
+            const safeDamageType = req.damageType ? t('damageTypes.' + req.damageType) : '-';
+
             return `
-                <div class="card mb-md" onclick="App.viewRequest('${req.id}')" style="cursor: pointer;">
+                <div class="card mb-md" onclick="App.viewRequest('${safeId}')" style="cursor: pointer;">
                     <div class="flex gap-md">
                         <div style="width: 60px; height: 60px; border-radius: var(--radius-md); overflow: hidden; flex-shrink: 0;">
                             <img src="${req.photos && req.photos[0] ? req.photos[0] : 'data:image/svg+xml,<svg xmlns=%22http://www.w3.org/2000/svg%22 viewBox=%220 0 60 60%22><rect fill=%22%231e3a5f%22 width=%2260%22 height=%2260%22/><path d=%22M27 20h6l3 4h6v16H18V24h6l3-4z%22 stroke=%22white%22 fill=%22none%22 stroke-width=%222%22/><circle cx=%2230%22 cy=%2232%22 r=%224%22 stroke=%22white%22 fill=%22none%22 stroke-width=%222%22/></svg>'}" style="width: 100%; height: 100%; object-fit: cover;">
                         </div>
                         <div class="flex-1">
                             <div class="flex justify-between items-center mb-sm">
-                                <span class="font-bold">${req.vehicle.brand || 'Fahrzeug'} ${req.vehicle.model || ''}</span>
+                                <span class="font-bold">${safeBrand} ${safeModel}</span>
                                 ${statusBadge}
                             </div>
                             <p class="text-secondary" style="font-size: var(--font-size-sm);">
-                                ${req.damageType ? t('damageTypes.' + req.damageType) : '-'} • ${date}
+                                ${safeDamageType} • ${date}
                             </p>
                             <p class="text-secondary" style="font-size: var(--font-size-sm);">
                                 ${req.offers.length > 0 ? t('offerReceived', { count: req.offers.length }) : t('waitingForOffers')}
@@ -1000,15 +1006,21 @@ const App = {
         // Update offers page
         const infoContainer = document.getElementById('offer-request-info');
         if (infoContainer) {
+            // XSS Prevention: escape all user-provided data
+            const safeBrand = this.escapeHtml(request.vehicle.brand || 'Fahrzeug');
+            const safeModel = this.escapeHtml(request.vehicle.model || '');
+            const safePlate = this.escapeHtml(request.vehicle.plate || '');
+            const safeDamageType = request.damageType ? t('damageTypes.' + request.damageType) : '';
+
             infoContainer.innerHTML = `
                 <div class="flex gap-md">
                     <div style="width: 80px; height: 80px; border-radius: var(--radius-md); overflow: hidden; flex-shrink: 0;">
                         <img src="${request.photos && request.photos[0] ? request.photos[0] : 'data:image/svg+xml,<svg xmlns=%22http://www.w3.org/2000/svg%22 viewBox=%220 0 80 80%22><rect fill=%22%231e3a5f%22 width=%2280%22 height=%2280%22/><path d=%22M35 25h10l4 5h10v22H21V30h10l4-5z%22 stroke=%22white%22 fill=%22none%22 stroke-width=%222%22/><circle cx=%2240%22 cy=%2242%22 r=%226%22 stroke=%22white%22 fill=%22none%22 stroke-width=%222%22/></svg>'}" style="width: 100%; height: 100%; object-fit: cover;">
                     </div>
                     <div>
-                        <h3>${request.vehicle.brand || 'Fahrzeug'} ${request.vehicle.model || ''}</h3>
-                        <p class="text-secondary">${request.vehicle.plate || ''}</p>
-                        <p class="text-secondary">${request.damageType ? t('damageTypes.' + request.damageType) : ''}</p>
+                        <h3>${safeBrand} ${safeModel}</h3>
+                        <p class="text-secondary">${safePlate}</p>
+                        <p class="text-secondary">${safeDamageType}</p>
                     </div>
                 </div>
             `;
@@ -1053,42 +1065,52 @@ const App = {
 
         if (waiting) waiting.classList.add('hidden');
 
-        container.innerHTML = request.offers.map(offer => `
-            <div class="offer-card">
-                <div class="offer-header">
-                    <div class="offer-logo"><svg class="icon icon-lg"><use href="#icon-wrench"></use></svg></div>
-                    <div class="offer-info">
-                        <div class="offer-name">${offer.workshopName}</div>
-                        <div class="offer-rating">
-                            ${'★'.repeat(Math.floor(offer.rating))}${'☆'.repeat(5 - Math.floor(offer.rating))}
-                            <span>${offer.rating}</span>
+        container.innerHTML = request.offers.map(offer => {
+            // XSS Prevention: escape all user-provided data
+            const safeWorkshopName = this.escapeHtml(offer.workshopName || 'Werkstatt');
+            const safeOfferId = this.escapeHtml(offer.id);
+            const safePrice = Number(offer.price) || 0;
+            const safeDuration = Number(offer.duration) || 1;
+            const safeDistance = Number(offer.distance) || 0;
+            const safeRating = Math.min(5, Math.max(0, Number(offer.rating) || 0));
+
+            return `
+                <div class="offer-card">
+                    <div class="offer-header">
+                        <div class="offer-logo"><svg class="icon icon-lg"><use href="#icon-wrench"></use></svg></div>
+                        <div class="offer-info">
+                            <div class="offer-name">${safeWorkshopName}</div>
+                            <div class="offer-rating">
+                                ${'★'.repeat(Math.floor(safeRating))}${'☆'.repeat(5 - Math.floor(safeRating))}
+                                <span>${safeRating}</span>
+                            </div>
                         </div>
                     </div>
-                </div>
-                <div class="offer-details">
-                    <div>
-                        <div class="offer-detail-label">${t('price')}</div>
-                        <div class="offer-detail-value offer-price">${offer.price}€</div>
+                    <div class="offer-details">
+                        <div>
+                            <div class="offer-detail-label">${t('price')}</div>
+                            <div class="offer-detail-value offer-price">${safePrice}€</div>
+                        </div>
+                        <div>
+                            <div class="offer-detail-label">${t('duration')}</div>
+                            <div class="offer-detail-value">${safeDuration} ${safeDuration === 1 ? 'Tag' : 'Tage'}</div>
+                        </div>
+                        <div>
+                            <div class="offer-detail-label">${t('distance')}</div>
+                            <div class="offer-detail-value">${safeDistance} km</div>
+                        </div>
                     </div>
-                    <div>
-                        <div class="offer-detail-label">${t('duration')}</div>
-                        <div class="offer-detail-value">${offer.duration} ${offer.duration === 1 ? 'Tag' : 'Tage'}</div>
-                    </div>
-                    <div>
-                        <div class="offer-detail-label">${t('distance')}</div>
-                        <div class="offer-detail-value">${offer.distance} km</div>
+                    <div class="flex gap-sm">
+                        <button class="btn btn-secondary flex-1" onclick="App.openChat('${safeOfferId}')">
+                            <svg class="icon icon-md"><use href="#icon-message"></use></svg> Chat
+                        </button>
+                        <button class="btn btn-primary flex-1" onclick="App.acceptOffer('${safeOfferId}')">
+                            ${t('acceptOffer')}
+                        </button>
                     </div>
                 </div>
-                <div class="flex gap-sm">
-                    <button class="btn btn-secondary flex-1" onclick="App.openChat('${offer.id}')">
-                        <svg class="icon icon-md"><use href="#icon-message"></use></svg> Chat
-                    </button>
-                    <button class="btn btn-primary flex-1" onclick="App.acceptOffer('${offer.id}')">
-                        ${t('acceptOffer')}
-                    </button>
-                </div>
-            </div>
-        `).join('');
+            `;
+        }).join('');
     },
 
     /**

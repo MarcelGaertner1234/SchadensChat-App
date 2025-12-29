@@ -70,6 +70,7 @@ const Auth = {
 
     /**
      * Load stored session
+     * SECURITY: Only uid and type are stored (no PII)
      */
     loadStoredSession() {
         const storedUser = localStorage.getItem('schadens-chat-user');
@@ -77,9 +78,10 @@ const Auth = {
             try {
                 const userData = JSON.parse(storedUser);
                 this.userType = userData.type;
-                // For offline mode
-                if (!this.currentUser && userData.phone) {
-                    this.currentUser = { phone: userData.phone, uid: userData.uid };
+                // For offline mode - only store uid (no PII)
+                // Phone/email must come from Firebase Auth, not localStorage
+                if (!this.currentUser && userData.uid) {
+                    this.currentUser = { uid: userData.uid };
                 }
             } catch (e) {
                 console.warn('[Auth] Failed to parse stored user');
@@ -89,12 +91,15 @@ const Auth = {
 
     /**
      * Save session
+     * SECURITY: Only store non-PII data (uid, type)
+     * Phone/Email are PII and should NOT be stored in localStorage
+     * to comply with GDPR and prevent XSS data exfiltration
      */
     saveSession(user, type) {
         localStorage.setItem('schadens-chat-user', JSON.stringify({
             uid: user.uid,
-            phone: user.phoneNumber || null,
-            email: user.email || null,
+            // SECURITY: Removed phone and email (PII) from localStorage
+            // These can be retrieved from Firebase Auth when needed
             type: type
         }));
         localStorage.setItem('schadens-chat-user-type', type);

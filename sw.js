@@ -77,11 +77,14 @@ self.addEventListener('fetch', event => {
     event.respondWith(
         caches.open(CACHE_NAME).then(cache => {
             return cache.match(event.request).then(cachedResponse => {
-                // Fetch from network in background to update cache
+                // Create background fetch promise to update cache
                 const fetchPromise = fetch(event.request)
                     .then(networkResponse => {
-                        // Only cache successful responses
-                        if (networkResponse && networkResponse.status === 200) {
+                        // Only cache successful responses with valid response type
+                        if (networkResponse &&
+                            networkResponse.status === 200 &&
+                            networkResponse.type === 'basic') {
+                            // Clone before putting in cache (response body can only be read once)
                             cache.put(event.request, networkResponse.clone());
                         }
                         return networkResponse;
@@ -94,9 +97,11 @@ self.addEventListener('fetch', event => {
 
                 // Return cached response immediately if available
                 if (cachedResponse) {
-                    // Update cache in background (stale-while-revalidate)
-                    fetchPromise; // Fire and forget
-                    return cachedResponse;
+                    // FIXED: Use event.waitUntil() to ensure background update completes
+                    // Without this, browser may kill SW before cache update finishes
+                    event.waitUntil(fetchPromise);
+                    // Clone cached response to prevent body consumption issues
+                    return cachedResponse.clone();
                 }
 
                 // No cache - wait for network

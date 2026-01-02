@@ -400,6 +400,7 @@ const App = {
 
     /**
      * Handle selected photos with compression
+     * FIXED: Race condition in fallback - FileReader now properly awaited
      */
     async handlePhotos(files) {
         if (!files || files.length === 0) return;
@@ -429,19 +430,35 @@ const App = {
                 if (navigator.vibrate) navigator.vibrate(10);
             } catch (error) {
                 console.error('[App] Compression failed:', error);
-                // Fallback to original
-                const reader = new FileReader();
-                reader.onload = (e) => {
+                // FIXED: Fallback now properly awaited to prevent race condition
+                try {
+                    const originalData = await this.readFileAsDataURL(file);
                     this.photos.push({
                         id: Date.now() + Math.random().toString(36).substr(2, 9),
-                        data: e.target.result,
+                        data: originalData,
                         file: file
                     });
                     this.updatePhotoGrid();
-                };
-                reader.readAsDataURL(file);
+                } catch (readError) {
+                    console.error('[App] Failed to read file:', readError);
+                    this.showToast('Foto konnte nicht geladen werden', 'error');
+                }
             }
         }
+    },
+
+    /**
+     * Read file as Data URL (Promise-based wrapper for FileReader)
+     * @param {File} file - File to read
+     * @returns {Promise<string>} Data URL
+     */
+    readFileAsDataURL(file) {
+        return new Promise((resolve, reject) => {
+            const reader = new FileReader();
+            reader.onload = (e) => resolve(e.target.result);
+            reader.onerror = () => reject(new Error('FileReader failed'));
+            reader.readAsDataURL(file);
+        });
     },
 
     /**

@@ -34,6 +34,112 @@ const App = {
     currentRequestId: null,
     currentOfferId: null,
 
+    // localStorage configuration
+    STORAGE_KEY: 'schadens-chat-requests',
+    MAX_STORED_REQUESTS: 10,
+    MAX_STORAGE_SIZE_MB: 4, // Keep under 5MB limit
+
+    /**
+     * Get estimated localStorage usage in bytes
+     */
+    getLocalStorageSize() {
+        let total = 0;
+        for (let key in localStorage) {
+            if (localStorage.hasOwnProperty(key)) {
+                total += localStorage[key].length * 2; // UTF-16 = 2 bytes per char
+            }
+        }
+        return total;
+    },
+
+    /**
+     * Check if localStorage has space for new data
+     * @param {number} newDataSize - Size of new data in bytes
+     * @returns {boolean}
+     */
+    hasStorageSpace(newDataSize) {
+        const currentSize = this.getLocalStorageSize();
+        const maxSize = this.MAX_STORAGE_SIZE_MB * 1024 * 1024;
+        return (currentSize + newDataSize) < maxSize;
+    },
+
+    /**
+     * Clean up old requests to free localStorage space
+     * Removes oldest requests until under limit
+     */
+    cleanupOldRequests() {
+        try {
+            const requests = JSON.parse(localStorage.getItem(this.STORAGE_KEY) || '[]');
+
+            // Keep only the most recent requests
+            if (requests.length > this.MAX_STORED_REQUESTS) {
+                const trimmed = requests.slice(0, this.MAX_STORED_REQUESTS);
+                localStorage.setItem(this.STORAGE_KEY, JSON.stringify(trimmed));
+                console.log(`[App] Cleaned up ${requests.length - trimmed.length} old requests`);
+                return true;
+            }
+            return false;
+        } catch (e) {
+            console.error('[App] Failed to cleanup old requests:', e);
+            return false;
+        }
+    },
+
+    /**
+     * Save request to localStorage with overflow protection
+     * @param {Object} request - Request to save (without full photo data)
+     * @returns {boolean} Success status
+     */
+    saveRequestToLocalStorage(request) {
+        try {
+            // Cleanup old requests first
+            this.cleanupOldRequests();
+
+            // Get existing requests
+            let requests = [];
+            try {
+                requests = JSON.parse(localStorage.getItem(this.STORAGE_KEY) || '[]');
+            } catch (e) {
+                console.warn('[App] Corrupted localStorage, resetting:', e);
+                requests = [];
+            }
+
+            // Add new request at beginning
+            requests.unshift(request);
+
+            // Try to save
+            const dataStr = JSON.stringify(requests);
+            const dataSize = dataStr.length * 2;
+
+            // Check if we have space
+            if (!this.hasStorageSpace(dataSize)) {
+                // Remove oldest requests until we have space
+                while (requests.length > 1 && !this.hasStorageSpace(JSON.stringify(requests).length * 2)) {
+                    requests.pop();
+                    console.log('[App] Removed oldest request to free space');
+                }
+            }
+
+            localStorage.setItem(this.STORAGE_KEY, JSON.stringify(requests));
+            return true;
+
+        } catch (e) {
+            if (e.name === 'QuotaExceededError' || e.code === 22) {
+                console.error('[App] localStorage quota exceeded, clearing old data');
+                // Emergency: clear all old requests and try again
+                try {
+                    localStorage.setItem(this.STORAGE_KEY, JSON.stringify([request]));
+                    return true;
+                } catch (e2) {
+                    console.error('[App] Failed to save even after clearing:', e2);
+                    return false;
+                }
+            }
+            console.error('[App] Failed to save request:', e);
+            return false;
+        }
+    },
+
     /**
      * Initialize the App
      */
@@ -396,6 +502,61 @@ const App = {
             reader.onerror = () => reject(new Error('Failed to read file'));
             reader.readAsDataURL(file);
         });
+    },
+
+    /**
+     * Create a tiny thumbnail from a data URL for localStorage
+     * Returns a very small base64 string (typically < 5KB)
+     * @param {string} dataUrl - Source image data URL
+     * @param {number} maxSize - Maximum dimension in pixels (default 100)
+     * @param {number} quality - JPEG quality 0-1 (default 0.3)
+     * @returns {string} Thumbnail data URL or placeholder on error
+     */
+    createThumbnail(dataUrl, maxSize = 100, quality = 0.3) {
+        try {
+            // Create an offscreen canvas
+            const img = new Image();
+            const canvas = document.createElement('canvas');
+            const ctx = canvas.getContext('2d');
+
+            // For synchronous operation, we need to handle this differently
+            // Since we're creating thumbnails from already-loaded data URLs,
+            // we can use a synchronous approach with a placeholder fallback
+            img.src = dataUrl;
+
+            // If image is already loaded (from cache), use it
+            if (img.complete && img.naturalWidth > 0) {
+                let width = img.naturalWidth;
+                let height = img.naturalHeight;
+
+                // Scale down to maxSize
+                if (width > height) {
+                    if (width > maxSize) {
+                        height = (height * maxSize) / width;
+                        width = maxSize;
+                    }
+                } else {
+                    if (height > maxSize) {
+                        width = (width * maxSize) / height;
+                        height = maxSize;
+                    }
+                }
+
+                canvas.width = width;
+                canvas.height = height;
+                ctx.drawImage(img, 0, 0, width, height);
+
+                return canvas.toDataURL('image/jpeg', quality);
+            }
+
+            // Return a placeholder if image isn't ready
+            // This is a tiny 1x1 gray pixel
+            return 'data:image/jpeg;base64,/9j/4AAQSkZJRgABAQEASABIAAD/2wBDAAgGBgcGBQgHBwcJCQgKDBQNDAsLDBkSEw8UHRofHh0aHBwgJC4nICIsIxwcKDcpLDAxNDQ0Hyc5PTgyPC4zNDL/2wBDAQkJCQwLDBgNDRgyIRwhMjIyMjIyMjIyMjIyMjIyMjIyMjIyMjIyMjIyMjIyMjIyMjIyMjIyMjIyMjIyMjIyMjL/wAARCAABAAEDASIAAhEBAxEB/8QAFQABAQAAAAAAAAAAAAAAAAAAAAn/xAAUEAEAAAAAAAAAAAAAAAAAAAAA/8QAFQEBAQAAAAAAAAAAAAAAAAAAAAX/xAAUEQEAAAAAAAAAAAAAAAAAAAAA/9oADAMBEQCEEPEAAABKn//Z';
+        } catch (e) {
+            console.warn('[App] Failed to create thumbnail:', e);
+            // Return placeholder on error
+            return 'data:image/jpeg;base64,/9j/4AAQSkZJRgABAQEASABIAAD/2wBDAAgGBgcGBQgHBwcJCQgKDBQNDAsLDBkSEw8UHRofHh0aHBwgJC4nICIsIxwcKDcpLDAxNDQ0Hyc5PTgyPC4zNDL/2wBDAQkJCQwLDBgNDRgyIRwhMjIyMjIyMjIyMjIyMjIyMjIyMjIyMjIyMjIyMjIyMjIyMjIyMjIyMjIyMjIyMjIyMjL/wAARCAABAAEDASIAAhEBAxEB/8QAFQABAQAAAAAAAAAAAAAAAAAAAAn/xAAUEAEAAAAAAAAAAAAAAAAAAAAA/8QAFQEBAQAAAAAAAAAAAAAAAAAAAAX/xAAUEQEAAAAAAAAAAAAAAAAAAAAA/9oADAMBEQCEEPEAAABKn//Z';
+        }
     },
 
     /**
@@ -840,12 +1001,18 @@ const App = {
                 const newRequest = await RequestManager.createRequest(this.request, this.photos);
                 console.log('[App] Request created:', newRequest.id);
             } else {
-                // Fallback: Save to localStorage with error handling
+                // Fallback: Save to localStorage with overflow protection
+                // FIXED: Don't store full photo data - only metadata to prevent overflow
                 const newRequest = {
                     id: 'req_' + Date.now(),
                     createdAt: new Date().toISOString(),
                     status: 'new',
-                    photos: this.photos.map(p => p.data),
+                    // Store only photo count and small thumbnails (max 50KB each)
+                    photoCount: this.photos.length,
+                    photoThumbnails: this.photos.slice(0, 3).map(p => {
+                        // Create tiny thumbnail (max 100px, heavily compressed)
+                        return this.createThumbnail(p.data, 100, 0.3);
+                    }),
                     damageType: this.request.damageType,
                     damageLocation: this.request.damageLocation,
                     description: this.request.description,
@@ -855,13 +1022,10 @@ const App = {
                     offers: []
                 };
 
-                try {
-                    const requests = JSON.parse(localStorage.getItem('schadens-chat-requests') || '[]');
-                    requests.unshift(newRequest);
-                    localStorage.setItem('schadens-chat-requests', JSON.stringify(requests));
-                } catch (e) {
-                    console.error('[App] Failed to save request to localStorage:', e);
-                    throw e;
+                // Use overflow-protected save function
+                const saved = this.saveRequestToLocalStorage(newRequest);
+                if (!saved) {
+                    throw new Error('Failed to save request - storage full');
                 }
             }
 
